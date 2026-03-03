@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { fetchAgents } from "../api/api.ts"
 import {type Agent } from "../types/agent"
-import { Link } from "react-router-dom"
+import AgentView from "../components/AgentView.tsx";
 
 export default function AgentsPage() {
     const [agents, setAgents] = useState<Agent[]>([])
@@ -17,16 +17,10 @@ export default function AgentsPage() {
 
     return (
         <div>
-            <h1>Agents</h1>
-            <ul>
+            <h1>Server List</h1>
                 {agents.map(a => (
-                    <li key={a.agentId}>
-                        <Link to={`/agents/${a.agentId}`}>
-                            {a.agentId} - {a.status}
-                        </Link>
-                    </li>
+                    <AgentView key={a.agentId} agent={a} />
                 ))}
-            </ul>
         </div>
     )
 }
