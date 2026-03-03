@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { fetchAgents } from "../api/agents"
+import { fetchAgents } from "../api/api.ts"
 import {type Agent } from "../types/agent"
 import { Link } from "react-router-dom"
 
