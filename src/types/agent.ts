@@ -1,5 +1,11 @@
 export interface Agent {
-    agentId: string
-    lastSeen: string
-    status: "online" | "offline"
+    agentId: string;
+    hostName: string;
+    os: string;
+    arch: string;
+    cpuCores: number;
+    totalMemory: number;
+    version: string;
+    lastSeen: string;
+    status: string;
 }

@@ -17,6 +17,7 @@ export default function AgentsPage() {
         <div className="p-6 max-w-5xl mx-auto">
             <h1 className="text-2xl font-bold mb-6">Agents</h1>
 
+
             {loading ? (
                 <div className="text-muted-foreground">Loading agents...</div>
             ) : agents.length === 0 ? (
