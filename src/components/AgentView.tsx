@@ -1,11 +1,10 @@
 import {Link} from "react-router-dom"
 import type {Agent} from "../types/agent"
-import {Cpu} from "lucide-react"
+import {Cpu, MemoryStick} from "lucide-react"
 import {
     Card,
     CardHeader,
-    CardTitle,
-    CardDescription, CardContent,
+    CardContent,
 } from "./ui/card"
 
 interface AgentViewProps {
@@ -17,25 +16,37 @@ export default function AgentView({agent}: AgentViewProps) {
 
     return (
         <Link to={`/agents/${agent.agentId}`}>
-            <Card className="hover:shadow-md transition-shadow cursor-pointer">
-                <CardHeader>
-                    <CardTitle className="text-base font-semibold">
-                        {agent.agentId}
-                    </CardTitle>
+            <Card className="hover:shadow-lg transition-all cursor-pointer border">
+                <CardHeader className="pb-3">
+                    <div className="flex items-start justify-between">
 
-                    <CardDescription className="space-y-2">
-                        <div className="flex items-center gap-2">
-                            <span className={`h-2 w-2 rounded-full ${isOnline ? "bg-green-500" : "bg-red-500"}`}/>
-                            {agent.status}
+                        {/* Host + icon */}
+                        <div className="flex items-center gap-3">
+                            <img src="/images/os-icons/apple-icon.svg" alt="os-icon" className="h-7 w-7"/>
+                            <div>
+                                <p className="font-medium leading-none">{agent.hostName}</p>
+                                <p className="text-xs text-muted-foreground mt-1">{agent.agentId}</p>
+                            </div>
                         </div>
-                    </CardDescription>
+
+                        {/* Status */}
+                        <div className="flex items-center gap-2 text-sm">
+                            <span className={`h-2.5 w-2.5 rounded-full ${isOnline ? "bg-green-500" : "bg-red-500"}`}/>
+                            <span className="text-muted-foreground capitalize">{agent.status}</span>
+                        </div>
+                    </div>
                 </CardHeader>
-                <CardContent>
-                    <div className="flex items-center gap-2">
-                        <Cpu className="h-4 w-4 text-muted-foreground"/>
-                        <span className="text-sm text-muted-foreground">
-                            CPU Usage : {agent.cpuCores}
-                        </span>
+
+                <CardContent className="pt-2">
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                            <Cpu className="h-4 w-4"/>
+                            <span>{agent.cpuCores} cores</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                            <MemoryStick className="h-4 w-4"/>
+                            <span>{agent.totalMemory}</span>
+                        </div>
                     </div>
                 </CardContent>
             </Card>
