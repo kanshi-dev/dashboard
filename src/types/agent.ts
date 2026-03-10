@@ -2,6 +2,7 @@ export interface Agent {
     agentId: string;
     hostName: string;
     os: string;
+    platform: string
     arch: string;
     cpuCores: number;
     totalMemory: number;

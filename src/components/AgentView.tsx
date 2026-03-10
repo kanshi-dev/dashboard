@@ -14,6 +14,15 @@ interface AgentViewProps {
 
 export default function AgentView({agent}: AgentViewProps) {
     const isOnline = agent.status === "online"
+    const osIcons: Record<string, string> = {
+        ubuntu: "/images/os-icons/ubuntu.svg",
+        centos: "/images/os-icons/centos.svg",
+        debian: "/images/os-icons/debian.svg",
+        amzn: "/images/os-icons/amazon-linux.svg",
+        darwin: "/images/os-icons/apple.svg",
+        windows: "/images/os-icons/windows.svg",
+        linux: "/images/os-icons/linux.svg"
+    }
 
     return (
         <Link to={`/agents/${agent.agentId}`}>
@@ -23,7 +32,7 @@ export default function AgentView({agent}: AgentViewProps) {
 
                         {/* Host + icon */}
                         <div className="flex items-center gap-3">
-                            <img src="/images/os-icons/apple-icon.svg" alt="os-icon" className="h-7 w-7"/>
+                            <img src={osIcons[agent.platform] ?? osIcons["linux"]} alt="os-icon" className="h-7 w-7"/>
                             <div>
                                 <p className="font-medium leading-none">{agent.hostName}</p>
                                 <p className="text-xs text-muted-foreground mt-1">{agent.agentId}</p>
