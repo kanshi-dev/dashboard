@@ -1,11 +1,12 @@
 import {Link} from "react-router-dom"
 import type {Agent} from "../types/agent"
-import {Cpu, MemoryStick} from "lucide-react"
+import {Cpu, MemoryStick,HardDrive} from "lucide-react"
 import {
     Card,
     CardHeader,
     CardContent,
 } from "./ui/card"
+import {bytesToGB} from "../util/format.ts";
 
 interface AgentViewProps {
     agent: Agent
@@ -38,14 +39,18 @@ export default function AgentView({agent}: AgentViewProps) {
                 </CardHeader>
 
                 <CardContent className="pt-2">
-                    <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div className="grid grid-cols-3 gap-3 text-sm">
                         <div className="flex items-center gap-2 text-muted-foreground">
                             <Cpu className="h-4 w-4"/>
                             <span>{agent.cpuCores} cores</span>
                         </div>
                         <div className="flex items-center gap-2 text-muted-foreground">
                             <MemoryStick className="h-4 w-4"/>
-                            <span>{agent.totalMemory}</span>
+                            <span>{bytesToGB(agent.totalMemory)}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                            <HardDrive className="h-4 w-4"/>
+                            <span>{bytesToGB(agent.diskSize)} </span>
                         </div>
                     </div>
                 </CardContent>

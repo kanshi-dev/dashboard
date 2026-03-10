@@ -8,4 +8,5 @@ export interface Agent {
     version: string;
     lastSeen: string;
     status: string;
+    diskSize: number;
 }
