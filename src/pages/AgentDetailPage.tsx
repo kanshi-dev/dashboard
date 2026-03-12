@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom"
+import { useParams, useNavigate } from "react-router-dom"
 import { useEffect, useState } from "react"
 import {
     LineChart,
@@ -9,11 +9,14 @@ import {
     ResponsiveContainer,
     CartesianGrid,
 } from "recharts"
+import { ArrowLeft } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import { fetchAggregatedMetrics } from "../api/api"
 import type { AggregatedMetric } from "../types/aggregated-metric"
 
 export default function AgentDetailPage() {
     const { id } = useParams()
+    const navigate = useNavigate()
     const [data, setData] = useState<AggregatedMetric[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
@@ -51,33 +54,72 @@ export default function AgentDetailPage() {
         return () => clearInterval(interval)
     }, [id])
 
-    if (loading) {
-        return <div style={{ padding: "2rem" }}>Loading metrics...</div>
-    }
-
-    if (error) {
-        return <div style={{ padding: "2rem", color: "red" }}>{error}</div>
-    }
-
     return (
-        <div style={{ padding: "2rem" }}>
-            <h2>Agent: {id}</h2>
+        <div className="p-6 max-w-5xl mx-auto space-y-6">
+            <div className="flex items-center gap-4">
+                <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={() => navigate(-1)}
+                    className="-ml-2"
+                >
+                    <ArrowLeft className="h-5 w-5" />
+                    <span className="sr-only">Back</span>
+                </Button>
+                <h2 className="text-2xl font-bold tracking-tight">Agent: {id}</h2>
+            </div>
 
-            <ResponsiveContainer width="100%" height={400}>
-                <LineChart data={data}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="bucket" />
-                    <YAxis domain={[0, 100]} />
-                    <Tooltip />
-                    <Line
-                        type="monotone"
-                        dataKey="avgValue"
-                        stroke="#8884d8"
-                        strokeWidth={2}
-                        dot={false}
-                    />
-                </LineChart>
-            </ResponsiveContainer>
+            {loading ? (
+                <div className="flex items-center justify-center min-h-100 text-muted-foreground border rounded-lg bg-card">
+                    Loading metrics...
+                </div>
+            ) : error ? (
+                <div className="flex items-center justify-center min-h-100 text-destructive border rounded-lg bg-card">
+                    {error}
+                </div>
+            ) : data.length === 0 ? (
+                <div className="flex items-center justify-center min-h-100 text-muted-foreground border-2 border-dashed rounded-lg">
+                    No data available
+                </div>
+            ) : (
+                <div className="rounded-lg border bg-card p-4">
+                    <ResponsiveContainer width="100%" height={400}>
+                        <LineChart data={data}>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                            <XAxis 
+                                dataKey="bucket" 
+                                stroke="hsl(var(--muted-foreground))" 
+                                fontSize={12} 
+                                tickLine={false} 
+                                axisLine={false} 
+                            />
+                            <YAxis 
+                                domain={[0, 100]} 
+                                stroke="hsl(var(--muted-foreground))" 
+                                fontSize={12} 
+                                tickLine={false} 
+                                axisLine={false}
+                                tickFormatter={(value) => `${value}%`}
+                            />
+                            <Tooltip 
+                                contentStyle={{ 
+                                    backgroundColor: "hsl(var(--card))", 
+                                    borderColor: "hsl(var(--border))",
+                                    color: "hsl(var(--card-foreground))"
+                                }}
+                            />
+                            <Line
+                                type="monotone"
+                                dataKey="avgValue"
+                                stroke="hsl(var(--primary))"
+                                strokeWidth={2}
+                                dot={false}
+                                activeDot={{ r: 4, strokeWidth: 0 }}
+                            />
+                        </LineChart>
+                    </ResponsiveContainer>
+                </div>
+            )}
         </div>
     )
 }
