@@ -38,11 +38,11 @@ export default function AgentsPage() {
             </div>
 
             {loading ? (
-                <div className="flex items-center justify-center min-h-[200px] text-muted-foreground">
+                <div className="flex items-center justify-center min-h-50 text-muted-foreground">
                     Loading agents...
                 </div>
             ) : filteredAgents.length === 0 ? (
-                <div className="flex items-center justify-center min-h-[200px] text-muted-foreground border-2 border-dashed rounded-lg">
+                <div className="flex items-center justify-center min-h-50 text-muted-foreground border-2 border-dashed rounded-lg">
                     {search ? "No agents matching your search" : "No agents found"}
                 </div>
             ) : (
