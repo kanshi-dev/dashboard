@@ -14,7 +14,7 @@ export async function fetchAgents(): Promise<Agent[]> {
     if (!res.ok) throw new Error("Failed to fetch agents")
 
     const json: ApiResponse<Agent[]> = await res.json()
-    return json.data
+    return json.data || []
 }
 
 export async function fetchAggregatedMetrics(
@@ -28,5 +28,5 @@ export async function fetchAggregatedMetrics(
     if (!res.ok) throw new Error("Failed to fetch metrics")
 
     const json: ApiResponse<AggregatedMetric[]> = await res.json()
-    return json.data
+    return json.data || []
 }
