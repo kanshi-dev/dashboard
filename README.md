@@ -5,10 +5,12 @@ Kanshi provides a comprehensive view into your distributed system by monitoring 
 ## What Kanshi Can Do
 
 ### 🖥️ Real-time Agent Monitoring
+![Agents Overview](https://raw.githubusercontent.com/kanshi-dev/demo/main/imgs/agents.png)
 - **Live Status Tracking**: Instantly view the status of all active agents in your network.
 - **Agent Overview**: Get a bird's-eye view of your entire infrastructure from a single, centralized dashboard.
 
 ### 📊 Deep Metric Analysis
+![Agent Details](https://raw.githubusercontent.com/kanshi-dev/demo/main/imgs/agent-details.png)
 - **Detailed Visualizations**: Dive deep into any specific agent to see its historical and real-time performance data.
 - **Aggregated Metrics**: View trends and patterns through interactive charts, helping you identify bottlenecks or anomalies quickly.
 - **Configurable Intervals**: Analyze data at different time granularities to suit your monitoring needs.
