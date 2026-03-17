@@ -100,8 +100,11 @@ export default function AgentDetailPage() {
                                         axisLine={false}
                                         tickFormatter={(value) => `${value}%`}
                                     />
-                                    <Tooltip 
-                                        formatter={(value: number) => [`${value.toFixed(1)}%`, "Average"] as [string, string]}
+                                    <Tooltip
+                                            formatter={(value: number | string | (number | string)[] | undefined) => {
+                                            const numValue = Number(value);
+                                            return !isNaN(numValue) ? [`${numValue.toFixed(1)}%`, "Average"] : ["N/A", "Average"];
+                                        }}
                                         contentStyle={{ 
                                             backgroundColor: "var(--card)", 
                                             borderColor: "var(--border)",
