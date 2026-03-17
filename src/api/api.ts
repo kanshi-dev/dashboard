@@ -1,7 +1,7 @@
 import type { Agent } from "../types/agent"
 import type { AggregatedMetric } from "../types/aggregated-metric"
 
-const API_URL = "http://localhost:8080/api/v1"
+const API_URL = "/api/v1"
 
 interface ApiResponse<T> {
     code: number
