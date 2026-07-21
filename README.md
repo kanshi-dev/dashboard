@@ -1,5 +1,7 @@
 # Kanshi Dashboard
 
+[![CI](https://github.com/kanshi-dev/dashboard/actions/workflows/ci.yaml/badge.svg)](https://github.com/kanshi-dev/dashboard/actions/workflows/ci.yaml)
+
 Kanshi provides a comprehensive view into your distributed system by monitoring agents and their metrics in real-time.
 
 ## What Kanshi Can Do
