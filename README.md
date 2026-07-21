@@ -21,4 +21,4 @@ Kanshi provides a comprehensive view into your distributed system by monitoring 
 
 ## Test against a local API
 
-Copy `.env.example` to `.env.local`, set `VITE_API_URL` to the core API base, then run `npm run dev`. When unset, the dashboard uses the same-origin `/api/v1` proxy.
+`npm run dev` targets `http://127.0.0.1:8080/api/v1` through `.env.development`. Copy `.env.example` to `.env.local` only when you need to override that address. Production defaults to the same-origin `/api/v1` proxy.
