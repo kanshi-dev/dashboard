@@ -21,9 +21,8 @@ export async function fetchAggregatedMetrics(
     agentId: string,
     name: string
 ): Promise<AggregatedMetric[]> {
-    const res = await fetch(
-        `${API_URL}/metrics/aggregate?agentId=${agentId}&name=${name}&interval=30s`
-    )
+    const params = new URLSearchParams({ agentId, name, interval: "30s" })
+    const res = await fetch(`${API_URL}/metrics/aggregate?${params}`)
 
     if (!res.ok) throw new Error("Failed to fetch metrics")
 
