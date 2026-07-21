@@ -18,3 +18,7 @@ Kanshi provides a comprehensive view into your distributed system by monitoring 
 ### 📱 Seamless User Experience
 - **Anywhere Access**: The dashboard is fully responsive, allowing you to monitor your systems from your desktop, tablet, or smartphone.
 - **Intuitive Navigation**: Easily switch between high-level overviews and detailed agent views with a clean, user-friendly interface.
+
+## Test against a local API
+
+Copy `.env.example` to `.env.local`, set `VITE_API_URL` to the core API base, then run `npm run dev`. When unset, the dashboard uses the same-origin `/api/v1` proxy.

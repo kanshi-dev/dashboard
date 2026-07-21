@@ -1,7 +1,11 @@
 import type { Agent } from "../types/agent"
 import type { AggregatedMetric } from "../types/aggregated-metric"
 
-const API_URL = "/api/v1"
+const API_URL =
+    import.meta.env?.VITE_API_URL ||
+    (globalThis as { process?: { env: { VITE_API_URL?: string } } }).process?.env
+        .VITE_API_URL ||
+    "/api/v1"
 
 interface ApiResponse<T> {
     code: number
