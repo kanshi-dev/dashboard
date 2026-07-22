@@ -24,3 +24,8 @@ Kanshi provides a comprehensive view into your distributed system by monitoring 
 ## Test against a local API
 
 `npm run dev` targets `http://127.0.0.1:8080/api/v1` through `.env.development`. Copy `.env.example` to `.env.local` only when you need to override that address. Production defaults to the same-origin `/api/v1` proxy.
+# Quickstart and support
+
+See the [canonical quickstart](https://github.com/kanshi-dev/core/blob/main/QUICKSTART.md) to run the dashboard with the release stack.
+
+Kanshi follows semantic versioning from `v1.0.0`. Bug fixes ship in `v1.0.x`, features wait for the next minor release, and breaking API changes wait for the next major release. Release notes are generated from merged pull requests. Use GitHub issues for public support and [private vulnerability reporting](SECURITY.md) for security reports. The latest `v1.0.x` release is supported.
