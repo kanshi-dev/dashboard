@@ -1,6 +1,6 @@
 # Contributing to kanshi-dashboard
 
-Kanshi is built from three repos — [core](https://github.com/kanshi-dev/core), [agent](https://github.com/kanshi-dev/agent), [dashboard](https://github.com/kanshi-dev/dashboard). Work is planned on the [Kanshi v1.0.0 project board](https://github.com/orgs/kanshi-dev/projects/1); the roadmap and priorities live there. Please pick up (or file) an issue before opening a PR.
+Kanshi is built from three repos: [core](https://github.com/kanshi-dev/core), [agent](https://github.com/kanshi-dev/agent), and [dashboard](https://github.com/kanshi-dev/dashboard). Work is planned on the [Kanshi v1.0.0 project board](https://github.com/orgs/kanshi-dev/projects/1); the roadmap and priorities live there. Please pick up (or file) an issue before opening a PR.
 
 ## Workflow
 
@@ -12,9 +12,9 @@ Kanshi is built from three repos — [core](https://github.com/kanshi-dev/core),
 
 ## Rules of the repo
 
-- **Bug fixes land with a regression test** where practical — fails before the fix, passes after.
+- **Bug fixes land with a regression test** where practical: it fails before the fix and passes after.
 - All calls to the core REST API go through `src/api/api.ts`; build query strings with `URLSearchParams`, never template-literal interpolation.
-- UI components come from shadcn/ui (`src/components/ui/`) — prefer composing existing components over adding new dependencies.
+- UI components come from shadcn/ui (`src/components/ui/`); prefer composing existing components over adding new dependencies.
 - The API responds with a `{ code, message, data }` envelope; unwrap it in the API layer, not in components.
 
 ## Development
