@@ -19,3 +19,21 @@ test("fetchAggregatedMetrics encodes query parameters", async () => {
     assert.equal(url.searchParams.get("name"), "disk used=50%")
     assert.equal(url.searchParams.get("interval"), "30s")
 })
+
+test("API requests send and clear the dashboard key", async () => {
+    const values = new Map([["kanshi.dashboardKey", "dashboard-secret"]])
+    Object.defineProperty(globalThis, "localStorage", { configurable: true, value: {
+        getItem: (key: string) => values.get(key) ?? null,
+        removeItem: (key: string) => values.delete(key),
+    } })
+    const { fetchAgents } = await import("../src/api/api.ts")
+    let authorization = ""
+    globalThis.fetch = async (_input, init) => {
+        authorization = new Headers(init?.headers).get("Authorization") ?? ""
+        return new Response(null, { status: 401 })
+    }
+
+    await assert.rejects(fetchAgents, /Invalid dashboard key/)
+    assert.equal(authorization, "Bearer dashboard-secret")
+    assert.equal(values.has("kanshi.dashboardKey"), false)
+})

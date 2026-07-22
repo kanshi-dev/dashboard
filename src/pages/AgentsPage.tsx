@@ -3,17 +3,24 @@ import { fetchAgents } from "../api/api"
 import type { Agent } from "../types/agent"
 import AgentView from "../components/AgentView"
 import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
 import { Search } from "lucide-react"
 
 export default function AgentsPage() {
     const [agents, setAgents] = useState<Agent[]>([])
     const [loading, setLoading] = useState(true)
+    const [error, setError] = useState("")
     const [search, setSearch] = useState("")
 
     useEffect(() => {
-        fetchAgents()
-            .then(setAgents)
-            .finally(() => setLoading(false))
+        let active = true
+        const refresh = () => fetchAgents()
+            .then((data) => { if (active) { setAgents(data); setError("") } })
+            .catch(() => { if (active) setError("Could not refresh agents") })
+            .finally(() => { if (active) setLoading(false) })
+        refresh()
+        const timer = setInterval(refresh, 5000)
+        return () => { active = false; clearInterval(timer) }
     }, [])
 
     const filteredAgents = agents.filter(agent => 
@@ -37,9 +44,11 @@ export default function AgentsPage() {
                 </div>
             </div>
 
-            {loading ? (
-                <div className="flex items-center justify-center min-h-50 text-muted-foreground">
-                    Loading agents...
+            {error && <div role="alert" className="flex items-center justify-between rounded-md border border-destructive/40 p-3 text-sm"><span>{error}</span><Button variant="outline" size="sm" onClick={() => location.reload()}>Retry</Button></div>}
+
+            {loading && agents.length === 0 ? (
+                <div className="grid gap-4 md:grid-cols-2" role="status" aria-label="Loading agents">
+                    {[0, 1].map((item) => <div key={item} className="h-36 animate-pulse rounded-lg bg-muted" />)}
                 </div>
             ) : filteredAgents.length === 0 ? (
                 <div className="flex items-center justify-center min-h-50 text-muted-foreground border-2 border-dashed rounded-lg">
