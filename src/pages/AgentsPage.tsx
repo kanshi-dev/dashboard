@@ -11,6 +11,7 @@ export default function AgentsPage() {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState("")
     const [search, setSearch] = useState("")
+    const [retry, setRetry] = useState(0)
 
     useEffect(() => {
         let active = true
@@ -21,7 +22,7 @@ export default function AgentsPage() {
         refresh()
         const timer = setInterval(refresh, 5000)
         return () => { active = false; clearInterval(timer) }
-    }, [])
+    }, [retry])
 
     const filteredAgents = agents.filter(agent => 
         agent.hostName.toLowerCase().includes(search.toLowerCase()) ||
@@ -44,7 +45,7 @@ export default function AgentsPage() {
                 </div>
             </div>
 
-            {error && <div role="alert" className="flex items-center justify-between rounded-md border border-destructive/40 p-3 text-sm"><span>{error}</span><Button variant="outline" size="sm" onClick={() => location.reload()}>Retry</Button></div>}
+            {error && <div role="alert" className="flex items-center justify-between rounded-md border border-destructive/40 p-3 text-sm"><span>{error}</span><Button variant="outline" size="sm" onClick={() => setRetry(value => value + 1)}>Retry</Button></div>}
 
             {loading && agents.length === 0 ? (
                 <div className="grid gap-4 md:grid-cols-2" role="status" aria-label="Loading agents">

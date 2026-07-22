@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react"
-import { fetchAgents, DASHBOARD_KEY } from "../api/api"
+import { clearDashboardKey, fetchAgents, DASHBOARD_KEY } from "../api/api"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
@@ -17,6 +17,7 @@ export default function AuthScreen({ onAuthenticated }: { onAuthenticated: () =>
             await fetchAgents()
             onAuthenticated()
         } catch (err) {
+            clearDashboardKey()
             setError(err instanceof Error ? err.message : "Unable to connect")
         } finally {
             setBusy(false)
