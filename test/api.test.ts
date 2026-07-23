@@ -10,14 +10,16 @@ test("fetchAggregatedMetrics encodes query parameters", async () => {
         return new Response(JSON.stringify({ code: 200, message: "ok", data: [] }))
     }
 
-    await fetchAggregatedMetrics("host&group=東京", "disk used=50%")
+    for (const interval of ["30s", "1m", "5m", "15m"]) {
+        await fetchAggregatedMetrics("host&group=東京", "disk used=50%", interval)
 
-    const url = new URL(requested, "http://localhost")
-    assert.equal(url.origin, "http://127.0.0.1:8080")
-    assert.equal(url.pathname, "/test-api/metrics/aggregate")
-    assert.equal(url.searchParams.get("agentId"), "host&group=東京")
-    assert.equal(url.searchParams.get("name"), "disk used=50%")
-    assert.equal(url.searchParams.get("interval"), "30s")
+        const url = new URL(requested, "http://localhost")
+        assert.equal(url.origin, "http://127.0.0.1:8080")
+        assert.equal(url.pathname, "/test-api/metrics/aggregate")
+        assert.equal(url.searchParams.get("agentId"), "host&group=東京")
+        assert.equal(url.searchParams.get("name"), "disk used=50%")
+        assert.equal(url.searchParams.get("interval"), interval)
+    }
 })
 
 test("API requests send and clear the dashboard key", async () => {

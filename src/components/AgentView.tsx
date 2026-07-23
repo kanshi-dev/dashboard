@@ -1,69 +1,30 @@
-import {Link} from "react-router-dom"
-import type {Agent} from "../types/agent"
-import {Cpu, MemoryStick,HardDrive} from "lucide-react"
-import {
-    Card,
-    CardHeader,
-    CardContent,
-} from "./ui/card"
-import {bytesToGB} from "../util/format.ts";
+import { Link } from "react-router-dom"
+import type { Agent } from "../types/agent"
+import { bytesToGB } from "../util/format"
+import { osIcon } from "../util/os"
 
-interface AgentViewProps {
-    agent: Agent
-}
-
-export default function AgentView({agent}: AgentViewProps) {
-    const isOnline = agent.status === "online"
-    const osIcons: Record<string, string> = {
-        ubuntu: "/images/os-icons/ubuntu.svg",
-        centos: "/images/os-icons/centos.svg",
-        debian: "/images/os-icons/debian.svg",
-        amzn: "/images/os-icons/amazon-linux.svg",
-        darwin: "/images/os-icons/apple.svg",
-        windows: "/images/os-icons/windows.svg",
-        linux: "/images/os-icons/linux.svg"
-    }
-
+export default function AgentView({ agent, resourceValue }: { agent: Agent; resourceValue?: number }) {
+    const online = agent.status === "online"
     return (
-        <Link to={`/agents/${agent.agentId}`}>
-            <Card className="hover:shadow-lg transition-all cursor-pointer border">
-                <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between">
-
-                        {/* Host + icon */}
-                        <div className="flex items-center gap-3">
-                            <img src={osIcons[agent.platform] ?? osIcons["linux"]} alt="os-icon" className="h-7 w-7"/>
-                            <div>
-                                <p className="font-medium leading-none">{agent.hostName}</p>
-                                <p className="text-xs text-muted-foreground mt-1">{agent.agentId}</p>
-                            </div>
-                        </div>
-
-                        {/* Status */}
-                        <div className="flex items-center gap-2 text-sm">
-                            <span className={`h-2.5 w-2.5 rounded-full ${isOnline ? "bg-green-500" : "bg-red-500"}`}/>
-                            <span className="text-muted-foreground capitalize">{agent.status}</span>
-                        </div>
-                    </div>
-                </CardHeader>
-
-                <CardContent className="pt-2">
-                    <div className="grid grid-cols-3 gap-3 text-sm">
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                            <Cpu className="h-4 w-4"/>
-                            <span>{agent.cpuCores} cores</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                            <MemoryStick className="h-4 w-4"/>
-                            <span>{bytesToGB(agent.totalMemory)}</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                            <HardDrive className="h-4 w-4"/>
-                            <span>{bytesToGB(agent.diskSize)} </span>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
+        <Link
+            to={`/agents/${agent.agentId}`}
+            className="grid gap-2 border-b border-border px-4 py-4 transition-colors last:border-0 hover:bg-accent/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_5rem_6rem] sm:items-center sm:px-6"
+        >
+            <div className="flex min-w-0 items-center gap-3">
+                <img src={osIcon(agent.platform)} alt="" className="h-6 w-6 shrink-0" />
+                <div className="min-w-0">
+                    <p className="truncate font-mono text-sm font-medium sm:text-base">{agent.hostName}</p>
+                    <p className="truncate text-xs text-muted-foreground">
+                        {agent.cpuCores} cores · {bytesToGB(agent.totalMemory)} RAM · {bytesToGB(agent.diskSize)} disk
+                    </p>
+                </div>
+            </div>
+            <p className="text-sm text-muted-foreground">{agent.platform} · {agent.arch}</p>
+            <p className="text-sm tabular-nums text-muted-foreground">{resourceValue === undefined ? "—" : `${resourceValue.toFixed(0)}%`}</p>
+            <p className={`flex items-center gap-2 text-sm ${online ? "text-chart-2" : "text-destructive"}`}>
+                <span className={`h-2 w-2 rounded-full ${online ? "bg-chart-2" : "bg-destructive"}`} />
+                <span className="capitalize">{agent.status}</span>
+            </p>
         </Link>
     )
 }

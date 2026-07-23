@@ -25,9 +25,10 @@ export default function AuthScreen({ onAuthenticated }: { onAuthenticated: () =>
     }
 
     return (
-        <main className="min-h-screen grid place-items-center bg-background p-6">
-            <form onSubmit={submit} className="w-full max-w-sm space-y-4 rounded-xl border bg-card p-6 shadow-sm" aria-busy={busy}>
+        <main className="grid min-h-screen place-items-center bg-background p-6">
+            <form onSubmit={submit} className="w-full max-w-sm space-y-5 rounded-xl border border-border bg-card p-7" aria-busy={busy}>
                 <div>
+                    <div className="mb-5 flex h-10 w-10 items-center justify-center rounded-lg bg-primary font-bold text-primary-foreground">K</div>
                     <h1 className="text-2xl font-bold">Open Kanshi</h1>
                     <p className="mt-1 text-sm text-muted-foreground">Enter the dashboard key from your server configuration.</p>
                 </div>
