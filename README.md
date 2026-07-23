@@ -2,30 +2,38 @@
 
 [![CI](https://github.com/kanshi-dev/dashboard/actions/workflows/ci.yaml/badge.svg)](https://github.com/kanshi-dev/dashboard/actions/workflows/ci.yaml)
 
-Kanshi provides a comprehensive view into your distributed system by monitoring agents and their metrics in real-time.
+Kanshi Dashboard is the authenticated React interface for a Kanshi fleet. It shows live agent status, searchable system details, CPU, memory, and disk utilization, and per-agent charts with selectable aggregation intervals.
 
-## What Kanshi Can Do
+![Kanshi fleet overview](https://raw.githubusercontent.com/kanshi-dev/demo/main/imgs/agents.png)
 
-### 🖥️ Real-time Agent Monitoring
-![Agents Overview](https://raw.githubusercontent.com/kanshi-dev/demo/main/imgs/agents.png)
-- **Live Status Tracking**: Instantly view the status of all active agents in your network.
-- **Agent Overview**: Get a bird's-eye view of your entire infrastructure from a single, centralized dashboard.
+![Kanshi agent details](https://raw.githubusercontent.com/kanshi-dev/demo/main/imgs/agent-details.png)
 
-### 📊 Deep Metric Analysis
-![Agent Details](https://raw.githubusercontent.com/kanshi-dev/demo/main/imgs/agent-details.png)
-- **Detailed Visualizations**: Dive deep into any specific agent to see its historical and real-time performance data.
-- **Aggregated Metrics**: View trends and patterns through interactive charts, helping you identify bottlenecks or anomalies quickly.
-- **Configurable Intervals**: Analyze data at different time granularities to suit your monitoring needs.
+## Behavior
 
-### 📱 Seamless User Experience
-- **Anywhere Access**: The dashboard is fully responsive, allowing you to monitor your systems from your desktop, tablet, or smartphone.
-- **Intuitive Navigation**: Easily switch between high-level overviews and detailed agent views with a clean, user-friendly interface.
+- Polls agents and metrics every five seconds
+- Supports CPU, memory, and disk resources
+- Supports `30s`, `1m`, `5m`, and `15m` aggregation intervals
+- Preserves loaded data during refresh failures and provides retry
+- Stores the dashboard key only in browser local storage
+- Supports light and dark themes
+- Uses a same-origin `/api/v1` Nginx proxy in Docker
 
-## Test against a local API
+## Develop
 
-`npm run dev` targets `http://127.0.0.1:8080/api/v1` through `.env.development`. Copy `.env.example` to `.env.local` only when you need to override that address. Production defaults to the same-origin `/api/v1` proxy.
-# Quickstart and support
+```sh
+npm ci
+npm test
+npm run lint
+npm run build
+npm run dev
+```
 
-See the [canonical quickstart](https://github.com/kanshi-dev/core/blob/main/QUICKSTART.md) to run the dashboard with the release stack.
+Development targets `http://127.0.0.1:8080/api/v1` through `.env.development`. Use `.env.local` to override it.
 
-Kanshi follows semantic versioning from `v1.0.0`. Bug fixes ship in `v1.0.x`, features wait for the next minor release, and breaking API changes wait for the next major release. Release notes are generated from merged pull requests. Use GitHub issues for public support and [private vulnerability reporting](SECURITY.md) for security reports. The latest `v1.0.x` release is supported.
+## Run the complete stack
+
+Use the [local demo](https://github.com/kanshi-dev/demo) or the [canonical quickstart](https://github.com/kanshi-dev/core/blob/main/QUICKSTART.md).
+
+## Support and security
+
+Use GitHub issues for public support. Report vulnerabilities through [private vulnerability reporting](SECURITY.md). Kanshi follows semantic versioning from `v1.0.0`.
