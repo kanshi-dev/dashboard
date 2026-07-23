@@ -38,8 +38,9 @@ export async function fetchAgents(): Promise<Agent[]> {
 
 export async function fetchAggregatedMetrics(
     agentId: string,
-    name: string
+    name: string,
+    interval: string
 ): Promise<AggregatedMetric[]> {
-    const params = new URLSearchParams({ agentId, name, interval: "30s" })
+    const params = new URLSearchParams({ agentId, name, interval })
     return (await request<AggregatedMetric[]>(`/metrics/aggregate?${params}`)) || []
 }
