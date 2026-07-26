@@ -1,6 +1,6 @@
 import type { ReactNode } from "react"
 import { ChevronDown, LogOut } from "lucide-react"
-import { Link } from "react-router-dom"
+import { Link, NavLink } from "react-router-dom"
 import { clearDashboardKey } from "@/api/api"
 import { Button } from "@/components/ui/button"
 import {
@@ -21,6 +21,10 @@ export default function Layout({ children }: { children: ReactNode }) {
                         <span className="grid h-7 w-7 place-items-center rounded bg-primary font-mono text-sm font-bold text-primary-foreground">K</span>
                         <span>Kanshi</span>
                     </Link>
+                    <nav className="ml-6 flex items-center gap-1 text-sm">
+                        <NavLink to="/" end className={({ isActive }) => navClass(isActive)}>Fleet</NavLink>
+                        <NavLink to="/alerts" className={({ isActive }) => navClass(isActive)}>Alerts</NavLink>
+                    </nav>
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="sm" className="ml-auto text-muted-foreground">
@@ -42,4 +46,8 @@ export default function Layout({ children }: { children: ReactNode }) {
             <main>{children}</main>
         </div>
     )
+}
+
+function navClass(isActive: boolean) {
+    return `rounded-md px-2.5 py-1 ${isActive ? "bg-muted font-medium text-foreground" : "text-muted-foreground hover:text-foreground"}`
 }
