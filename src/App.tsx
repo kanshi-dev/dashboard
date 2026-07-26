@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom"
 import Layout from "./components/Layout"
 import AgentsPage from "./pages/AgentsPage"
 import AgentDetailPage from "./pages/AgentDetailPage"
+import AlertsPage from "./pages/AlertsPage"
 import AuthScreen from "./components/AuthScreen"
 import ErrorBoundary from "./components/ErrorBoundary"
 import { AUTH_REQUIRED_EVENT, DASHBOARD_KEY } from "./api/api"
@@ -24,6 +25,7 @@ export default function App() {
                     <Routes>
                         <Route path="/" element={<AgentsPage />} />
                         <Route path="/agents/:id" element={<AgentDetailPage />} />
+                        <Route path="/alerts" element={<AlertsPage />} />
                     </Routes>
                 </Layout>
             </BrowserRouter>

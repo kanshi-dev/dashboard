@@ -1,5 +1,7 @@
 import type { Agent } from "../types/agent"
 import type { AggregatedMetric } from "../types/aggregated-metric"
+import type { AlertRule, AlertRuleInput } from "../types/alert-rule"
+import type { AlertEvent } from "../types/alert-event"
 
 const API_URL =
     import.meta.env?.VITE_API_URL ||
@@ -21,13 +23,18 @@ export function clearDashboardKey() {
     globalThis.dispatchEvent?.(new Event(AUTH_REQUIRED_EVENT))
 }
 
-async function request<T>(path: string): Promise<T> {
+async function request<T>(path: string, init?: RequestInit): Promise<T> {
 	const key = typeof globalThis.localStorage?.getItem === "function" ? globalThis.localStorage.getItem(DASHBOARD_KEY) : null
-    const res = await fetch(`${API_URL}${path}`, {
-        headers: key ? { Authorization: `Bearer ${key}` } : {},
-    })
+    const headers: Record<string, string> = {}
+    if (key) headers.Authorization = `Bearer ${key}`
+    if (init?.body) headers["Content-Type"] = "application/json"
+    const res = await fetch(`${API_URL}${path}`, { ...init, headers })
     if (res.status === 401) clearDashboardKey()
-    if (!res.ok) throw new Error(res.status === 401 ? "Invalid dashboard key" : "Request failed")
+    if (!res.ok) {
+        if (res.status === 401) throw new Error("Invalid dashboard key")
+        const message = await res.json().then((body: ApiResponse<unknown>) => body?.data).catch(() => null)
+        throw new Error(typeof message === "string" && message ? message : "Request failed")
+    }
     const json: ApiResponse<T> = await res.json()
     return json.data
 }
@@ -43,4 +50,29 @@ export async function fetchAggregatedMetrics(
 ): Promise<AggregatedMetric[]> {
     const params = new URLSearchParams({ agentId, name, interval })
     return (await request<AggregatedMetric[]>(`/metrics/aggregate?${params}`)) || []
+}
+
+export async function fetchAlertRules(): Promise<AlertRule[]> {
+    return (await request<AlertRule[]>("/alerts/rules")) || []
+}
+
+export async function createAlertRule(input: AlertRuleInput): Promise<AlertRule> {
+    return request<AlertRule>("/alerts/rules", { method: "POST", body: JSON.stringify(input) })
+}
+
+export async function updateAlertRule(id: number, input: AlertRuleInput): Promise<AlertRule> {
+    return request<AlertRule>(`/alerts/rules/${id}`, { method: "PUT", body: JSON.stringify(input) })
+}
+
+export async function deleteAlertRule(id: number): Promise<void> {
+    await request<null>(`/alerts/rules/${id}`, { method: "DELETE" })
+}
+
+export async function fetchActiveAlerts(): Promise<AlertEvent[]> {
+    return (await request<AlertEvent[]>("/alerts/active")) || []
+}
+
+export async function fetchAlertHistory(limit = 100): Promise<AlertEvent[]> {
+    const params = new URLSearchParams({ limit: String(limit) })
+    return (await request<AlertEvent[]>(`/alerts/events?${params}`)) || []
 }

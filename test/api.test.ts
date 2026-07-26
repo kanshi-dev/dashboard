@@ -39,3 +39,61 @@ test("API requests send and clear the dashboard key", async () => {
     assert.equal(authorization, "Bearer dashboard-secret")
     assert.equal(values.has("kanshi.dashboardKey"), false)
 })
+
+test("createAlertRule posts a JSON body", async () => {
+    const { createAlertRule } = await import("../src/api/api.ts")
+    let method = "", body = "", url = "", contentType = ""
+    globalThis.fetch = async (input, init) => {
+        url = String(input)
+        method = init?.method ?? "GET"
+        body = String(init?.body ?? "")
+        contentType = new Headers(init?.headers).get("Content-Type") ?? ""
+        return new Response(JSON.stringify({ code: 201, message: "ok", data: { id: 1 } }))
+    }
+    const input = { name: "cpu", metric: "cpu.used_percent", comparator: "gt", threshold: 90, agentId: null, enabled: true }
+    const rule = await createAlertRule(input)
+    assert.equal(method, "POST")
+    assert.ok(url.endsWith("/alerts/rules"))
+    assert.equal(contentType, "application/json")
+    assert.deepEqual(JSON.parse(body), input)
+    assert.equal(rule.id, 1)
+})
+
+test("updateAlertRule puts to the rule id", async () => {
+    const { updateAlertRule } = await import("../src/api/api.ts")
+    let method = "", url = ""
+    globalThis.fetch = async (input, init) => {
+        url = String(input)
+        method = init?.method ?? "GET"
+        return new Response(JSON.stringify({ code: 200, message: "ok", data: {} }))
+    }
+    await updateAlertRule(7, { name: "x", metric: "mem.used_percent", comparator: "lt", threshold: 10, agentId: "agent-a", enabled: false })
+    assert.equal(method, "PUT")
+    assert.ok(url.endsWith("/alerts/rules/7"))
+})
+
+test("deleteAlertRule deletes the rule id", async () => {
+    const { deleteAlertRule } = await import("../src/api/api.ts")
+    let method = "", url = ""
+    globalThis.fetch = async (input, init) => {
+        url = String(input)
+        method = init?.method ?? "GET"
+        return new Response(JSON.stringify({ code: 200, message: "ok", data: null }))
+    }
+    await deleteAlertRule(9)
+    assert.equal(method, "DELETE")
+    assert.ok(url.endsWith("/alerts/rules/9"))
+})
+
+test("fetchAlertHistory encodes the limit", async () => {
+    const { fetchAlertHistory } = await import("../src/api/api.ts")
+    let requested = ""
+    globalThis.fetch = async (input) => {
+        requested = String(input)
+        return new Response(JSON.stringify({ code: 200, message: "ok", data: [] }))
+    }
+    await fetchAlertHistory(25)
+    const url = new URL(requested, "http://localhost")
+    assert.ok(url.pathname.endsWith("/alerts/events"))
+    assert.equal(url.searchParams.get("limit"), "25")
+})
