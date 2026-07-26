@@ -1,6 +1,6 @@
 # Contributing to kanshi-dashboard
 
-Kanshi is built from three repos: [core](https://github.com/kanshi-dev/core), [agent](https://github.com/kanshi-dev/agent), and [dashboard](https://github.com/kanshi-dev/dashboard). Work is planned on the [Kanshi v1.0.0 project board](https://github.com/orgs/kanshi-dev/projects/1); the roadmap and priorities live there. Please pick up (or file) an issue before opening a PR.
+Kanshi is split across the [kanshi-dev repositories](https://github.com/kanshi-dev). Product direction lives in the private engineering handbook; GitHub issues and Projects track execution. Please pick up (or file) an issue before opening a PR.
 
 ## Workflow
 
@@ -27,4 +27,4 @@ npm run build      # what CI runs, plus typecheck and lint
 
 ## Versioning
 
-Semver from v1.0.0: bug fixes ship as `v1.0.x` patches, features wait for `v1.1.0`.
+Semver from v1.0.0: bug fixes ship as patch releases and features as minor releases. No breaking API changes land within a major version.
