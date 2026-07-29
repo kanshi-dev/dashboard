@@ -97,3 +97,19 @@ test("fetchAlertHistory encodes the limit", async () => {
     assert.ok(url.pathname.endsWith("/alerts/events"))
     assert.equal(url.searchParams.get("limit"), "25")
 })
+
+test("fetchTraces encodes application telemetry filters", async () => {
+    const { fetchTraces } = await import("../src/api/api.ts")
+    let requested = ""
+    globalThis.fetch = async (input) => {
+        requested = String(input)
+        return new Response(JSON.stringify({ code: 200, message: "ok", data: [] }))
+    }
+    await fetchTraces({ service: "checkout & pay", status: "error", minDurationMs: 250, traceId: "a".repeat(32) })
+    const url = new URL(requested, "http://localhost")
+    assert.ok(url.pathname.endsWith("/traces"))
+    assert.equal(url.searchParams.get("service"), "checkout & pay")
+    assert.equal(url.searchParams.get("status"), "error")
+    assert.equal(url.searchParams.get("minDurationMs"), "250")
+    assert.equal(url.searchParams.get("traceId"), "a".repeat(32))
+})

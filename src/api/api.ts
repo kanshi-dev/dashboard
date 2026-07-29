@@ -2,6 +2,7 @@ import type { Agent } from "../types/agent"
 import type { AggregatedMetric } from "../types/aggregated-metric"
 import type { AlertRule, AlertRuleInput } from "../types/alert-rule"
 import type { AlertEvent } from "../types/alert-event"
+import type { LogRecord, ServiceSummary, TraceDetail, TraceFilters, TraceSummary } from "../types/telemetry"
 
 const API_URL =
     import.meta.env?.VITE_API_URL ||
@@ -75,4 +76,28 @@ export async function fetchActiveAlerts(): Promise<AlertEvent[]> {
 export async function fetchAlertHistory(limit = 100): Promise<AlertEvent[]> {
     const params = new URLSearchParams({ limit: String(limit) })
     return (await request<AlertEvent[]>(`/alerts/events?${params}`)) || []
+}
+
+export async function fetchServices(): Promise<ServiceSummary[]> {
+    return (await request<ServiceSummary[]>("/services")) || []
+}
+
+export async function fetchTraces(filters: TraceFilters = {}): Promise<TraceSummary[]> {
+    const params = new URLSearchParams()
+    for (const [key, value] of Object.entries(filters)) {
+        if (value !== undefined && value !== "") params.set(key, String(value))
+    }
+    return (await request<TraceSummary[]>(`/traces?${params}`)) || []
+}
+
+export async function fetchTrace(traceId: string): Promise<TraceDetail> {
+    return request<TraceDetail>(`/traces/${encodeURIComponent(traceId)}`)
+}
+
+export async function fetchLogs(filters: Pick<TraceFilters, "service" | "traceId" | "from" | "to" | "limit"> & { spanId?: string }): Promise<LogRecord[]> {
+    const params = new URLSearchParams()
+    for (const [key, value] of Object.entries(filters)) {
+        if (value !== undefined && value !== "") params.set(key, String(value))
+    }
+    return (await request<LogRecord[]>(`/logs?${params}`)) || []
 }

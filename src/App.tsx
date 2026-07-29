@@ -4,6 +4,8 @@ import Layout from "./components/Layout"
 import AgentsPage from "./pages/AgentsPage"
 import AgentDetailPage from "./pages/AgentDetailPage"
 import AlertsPage from "./pages/AlertsPage"
+import ServicesPage from "./pages/ServicesPage"
+import TraceDetailPage from "./pages/TraceDetailPage"
 import AuthScreen from "./components/AuthScreen"
 import ErrorBoundary from "./components/ErrorBoundary"
 import { AUTH_REQUIRED_EVENT, DASHBOARD_KEY } from "./api/api"
@@ -26,6 +28,8 @@ export default function App() {
                         <Route path="/" element={<AgentsPage />} />
                         <Route path="/agents/:id" element={<AgentDetailPage />} />
                         <Route path="/alerts" element={<AlertsPage />} />
+                        <Route path="/services" element={<ServicesPage />} />
+                        <Route path="/traces/:id" element={<TraceDetailPage />} />
                     </Routes>
                 </Layout>
             </BrowserRouter>
