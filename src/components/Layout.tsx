@@ -16,13 +16,14 @@ export default function Layout({ children }: { children: ReactNode }) {
     return (
         <div className="min-h-screen bg-background">
             <header className="border-b border-border bg-card/60">
-                <div className="mx-auto flex h-14 max-w-6xl items-center px-4 sm:px-6">
+                <div className="mx-auto flex h-14 max-w-6xl items-center px-3 sm:px-6">
                     <Link to="/" className="flex items-center gap-2 font-medium">
                         <span className="grid h-7 w-7 place-items-center rounded bg-primary font-mono text-sm font-bold text-primary-foreground">K</span>
-                        <span>Kanshi</span>
+                        <span className="hidden sm:inline">Kanshi</span>
                     </Link>
-                    <nav className="ml-6 flex items-center gap-1 text-sm">
+                    <nav className="ml-2 flex items-center gap-0.5 text-sm sm:ml-6 sm:gap-1">
                         <NavLink to="/" end className={({ isActive }) => navClass(isActive)}>Fleet</NavLink>
+                        <NavLink to="/services" className={({ isActive }) => navClass(isActive)}>Services</NavLink>
                         <NavLink to="/alerts" className={({ isActive }) => navClass(isActive)}>Alerts</NavLink>
                     </nav>
                     <DropdownMenu>
@@ -49,5 +50,5 @@ export default function Layout({ children }: { children: ReactNode }) {
 }
 
 function navClass(isActive: boolean) {
-    return `rounded-md px-2.5 py-1 ${isActive ? "bg-muted font-medium text-foreground" : "text-muted-foreground hover:text-foreground"}`
+    return `rounded-md px-1.5 py-1 sm:px-2.5 ${isActive ? "bg-muted font-medium text-foreground" : "text-muted-foreground hover:text-foreground"}`
 }
