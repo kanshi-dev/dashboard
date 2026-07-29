@@ -111,10 +111,10 @@ export default function TraceDetailPage() {
                 ) : (
                     <div className="divide-y divide-border font-mono text-xs">
                         {visibleLogs.map((record, index) => (
-                            <div key={`${record.timestamp}-${record.spanId}-${index}`} className="grid gap-1 px-4 py-3 sm:grid-cols-[7rem_5rem_1fr] sm:gap-3 sm:px-6">
+                            <div key={`${record.timestamp}-${record.spanId}-${index}`} className="grid gap-1 px-4 py-3 sm:grid-cols-[7rem_13rem_minmax(0,1fr)] sm:gap-3 sm:px-6">
                                 <time className="text-muted-foreground">{new Date(record.timestamp).toLocaleTimeString()}</time>
                                 <span className={severityClass(record.severity)}>{record.severity || "UNSET"}</span>
-                                <span className="break-words">{record.body}</span>
+                                <span className="min-w-0 break-words">{record.body}</span>
                             </div>
                         ))}
                     </div>
