@@ -11,8 +11,8 @@ Kanshi Dashboard is the authenticated React interface for a Kanshi deployment. I
 ## Behavior
 
 - Polls agents and metrics every five seconds
-- Supports CPU, memory, and disk resources
-- Supports `30s`, `1m`, `5m`, and `15m` aggregation intervals
+- Supports CPU, memory, disk, network send, and network receive resources
+- Supports one-hour, six-hour, 24-hour, and seven-day history presets with bounded aggregation
 - Manages alert rules and shows active alerts and history with webhook delivery status
 - Shows application request volume, errors, latency, bounded trace search, accessible span waterfalls, and correlated logs
 - Preserves loaded data during refresh failures and provides retry

@@ -8,6 +8,9 @@ import AgentView from "../components/AgentView"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { averageSeries } from "../util/fleet"
+import { bytesPerSecond } from "../util/format"
+import { historyPresets, historyRange } from "../util/history"
+import type { HistoryPreset } from "../util/history"
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -16,21 +19,22 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
-type SystemResource = "cpu" | "memory" | "disk"
-type MetricInterval = "30s" | "1m" | "5m" | "15m"
+type SystemResource = "cpu" | "memory" | "disk" | "networkSend" | "networkReceive"
 
 const resources: Record<SystemResource, { label: string; metric: string }> = {
     cpu: { label: "CPU", metric: "cpu.used_percent" },
     memory: { label: "Memory", metric: "mem.used_percent" },
     disk: { label: "Disk", metric: "disk.used_percent" },
+    networkSend: { label: "Network send", metric: "net.bytes_sent_per_second" },
+    networkReceive: { label: "Network receive", metric: "net.bytes_recv_per_second" },
 }
-const intervals: MetricInterval[] = ["30s", "1m", "5m", "15m"]
+const presets: HistoryPreset[] = ["1h", "6h", "24h", "7d"]
 
 export default function AgentsPage() {
     const [agents, setAgents] = useState<Agent[]>([])
     const [metricsByAgent, setMetricsByAgent] = useState<Record<string, AggregatedMetric[]>>({})
     const [resource, setResource] = useState<SystemResource>("cpu")
-    const [selectedInterval, setSelectedInterval] = useState<MetricInterval>("30s")
+    const [preset, setPreset] = useState<HistoryPreset>("1h")
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState("")
     const [search, setSearch] = useState("")
@@ -41,9 +45,10 @@ export default function AgentsPage() {
         const refresh = async () => {
             try {
                 const nextAgents = await fetchAgents()
+                const range = historyRange(preset)
                 const metrics = Object.fromEntries(await Promise.all(nextAgents.map(async agent => [
                     agent.agentId,
-                    await fetchAggregatedMetrics(agent.agentId, resources[resource].metric, selectedInterval),
+                    await fetchAggregatedMetrics(agent.agentId, resources[resource].metric, historyPresets[preset].interval, range.from, range.to),
                 ])))
                 if (active) {
                     setAgents(nextAgents)
@@ -59,7 +64,7 @@ export default function AgentsPage() {
         refresh()
         const timer = setInterval(refresh, 5000)
         return () => { active = false; clearInterval(timer) }
-    }, [retry, resource, selectedInterval])
+    }, [retry, resource, preset])
 
     const filteredAgents = agents.filter(agent =>
         agent.hostName.toLowerCase().includes(search.toLowerCase()) ||
@@ -67,6 +72,8 @@ export default function AgentsPage() {
     )
     const fleetMetrics = averageSeries(Object.values(metricsByAgent))
     const fleetAverage = fleetMetrics.at(-1)?.avgValue
+    const network = resource.startsWith("network")
+    const formatValue = (value: number) => network ? bytesPerSecond(value) : `${value.toFixed(1)}%`
     const chartData = fleetMetrics.map(metric => ({
         ...metric,
         label: new Date(metric.bucket).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
@@ -81,10 +88,10 @@ export default function AgentsPage() {
 
                 <div className="grid grid-cols-3 border-b border-border">
                     <Summary label="Agents" value={String(agents.length)} suffix={`${agents.filter(agent => agent.status === "online").length} online`} />
-                    <Summary label={`Avg ${resources[resource].label}`} value={fleetAverage === undefined ? "—" : `${fleetAverage.toFixed(0)}%`} />
+                    <Summary label={`Avg ${resources[resource].label}`} value={fleetAverage === undefined ? "—" : formatValue(fleetAverage)} />
                     <div className="min-w-0 p-4 sm:p-6">
-                        <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">Interval</p>
-                        <Dropdown value={selectedInterval} options={intervals} onChange={value => setSelectedInterval(value as MetricInterval)} />
+                        <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">History</p>
+                        <Dropdown value={preset} options={presets} onChange={value => setPreset(value as HistoryPreset)} />
                     </div>
                 </div>
 
@@ -102,7 +109,7 @@ export default function AgentsPage() {
                             options={Object.keys(resources)}
                             labels={Object.fromEntries(Object.entries(resources).map(([key, value]) => [key, value.label]))}
                             onChange={value => setResource(value as SystemResource)}
-                            suffix="utilization · all agents"
+                            suffix="· all agents"
                         />
                         <div className="relative w-full sm:w-64">
                             <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -125,8 +132,8 @@ export default function AgentsPage() {
                                     </defs>
                                     <CartesianGrid vertical={false} stroke="var(--border)" />
                                     <XAxis dataKey="label" tickLine={false} axisLine={false} stroke="var(--muted-foreground)" fontSize={11} minTickGap={28} />
-                                    <YAxis domain={[0, 100]} hide />
-                                    <Tooltip contentStyle={{ background: "var(--popover)", borderColor: "var(--border)", borderRadius: 8 }} formatter={(value) => [`${Number(value).toFixed(1)}%`, `Fleet ${resources[resource].label}`]} />
+                                    <YAxis domain={network ? undefined : [0, 100]} hide />
+                                    <Tooltip contentStyle={{ background: "var(--popover)", borderColor: "var(--border)", borderRadius: 8 }} formatter={(value) => [formatValue(Number(value)), `Fleet ${resources[resource].label}`]} />
                                     <Area type="monotone" dataKey="avgValue" stroke="var(--chart-1)" strokeWidth={3} fill="url(#fleet-cpu)" dot={false} activeDot={{ r: 4 }} />
                                 </AreaChart>
                             </ResponsiveContainer>
