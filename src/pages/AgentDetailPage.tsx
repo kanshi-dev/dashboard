@@ -15,7 +15,9 @@ import { Button } from "@/components/ui/button"
 import { fetchAgents, fetchAggregatedMetrics } from "../api/api"
 import type { AggregatedMetric } from "../types/aggregated-metric"
 import type { Agent } from "../types/agent"
-import { bytesToGB } from "../util/format"
+import { bytesPerSecond, bytesToGB } from "../util/format"
+import { historyPresets, historyRange } from "../util/history"
+import type { HistoryPreset } from "../util/history"
 import { osIcon } from "../util/os"
 
 export default function AgentDetailPage() {
@@ -25,24 +27,28 @@ export default function AgentDetailPage() {
         "cpu.used_percent": [],
         "mem.used_percent": [],
         "disk.used_percent": [],
+        "net.bytes_sent_per_second": [],
+        "net.bytes_recv_per_second": [],
     })
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const [agent, setAgent] = useState<Agent | null>(null)
+    const [preset, setPreset] = useState<HistoryPreset>("1h")
 
     const loadAllMetrics = useCallback(async () => {
         if (!id) return
         try {
-            const metricNames = ["cpu.used_percent", "mem.used_percent", "disk.used_percent"]
+            const metricNames = ["cpu.used_percent", "mem.used_percent", "disk.used_percent", "net.bytes_sent_per_second", "net.bytes_recv_per_second"]
+            const range = historyRange(preset)
             const [agents, results] = await Promise.all([
                 fetchAgents(),
                 Promise.all(metricNames.map(async (name) => {
-                    const data = await fetchAggregatedMetrics(id, name, "30s")
+                    const data = await fetchAggregatedMetrics(id, name, historyPresets[preset].interval, range.from, range.to)
                     return {
                         name,
                         data: data.map(m => ({
                             ...m,
-                            bucket: new Date(m.bucket).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }),
+                            bucket: new Date(m.bucket).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }),
                         }))
                     }
                 })),
@@ -62,7 +68,7 @@ export default function AgentDetailPage() {
         } finally {
             setLoading(false)
         }
-    }, [id])
+    }, [id, preset])
 
     useEffect(() => {
         loadAllMetrics()
@@ -70,7 +76,7 @@ export default function AgentDetailPage() {
         return () => clearInterval(interval)
     }, [loadAllMetrics])
 
-    const renderChart = (title: string, data: AggregatedMetric[]) => {
+    const renderChart = (title: string, data: AggregatedMetric[], network = false) => {
         const latestValue = data.length > 0 ? data[data.length - 1].avgValue : null
 
         return (
@@ -78,7 +84,7 @@ export default function AgentDetailPage() {
                 <div className="flex items-center justify-between">
                     <h3 className="text-sm font-medium text-muted-foreground">{title}</h3>
                     {latestValue !== null && (
-                        <div className="text-xl font-bold">{latestValue.toFixed(1)}%</div>
+                        <div className="text-xl font-bold">{network ? bytesPerSecond(latestValue) : `${latestValue.toFixed(1)}%`}</div>
                     )}
                 </div>
                     <div className="mt-4 h-64 w-full">
@@ -98,12 +104,12 @@ export default function AgentDetailPage() {
                                         axisLine={false} 
                                     />
                                     <YAxis 
-                                        domain={[0, 100]} 
+                                        domain={network ? undefined : [0, 100]}
                                         stroke="var(--muted-foreground)" 
                                         fontSize={10} 
                                         tickLine={false} 
                                         axisLine={false}
-                                        tickFormatter={(value) => `${value}%`}
+                                        tickFormatter={(value) => network ? bytesPerSecond(value) : `${value}%`}
                                     />
                                     <Tooltip
                                         contentStyle={{ 
@@ -112,6 +118,7 @@ export default function AgentDetailPage() {
                                             color: "var(--card-foreground)",
                                             fontSize: '12px'
                                         }}
+                                        formatter={(value) => network ? bytesPerSecond(Number(value)) : `${Number(value).toFixed(1)}%`}
                                     />
                                     <Line
                                         type="monotone"
@@ -157,15 +164,26 @@ export default function AgentDetailPage() {
                     </div>
                 )}
 
+                <div className="flex justify-end border-b border-border px-4 py-3 sm:px-6">
+                    <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                        History
+                        <select className="rounded-md border border-border bg-background px-3 py-2 text-foreground" value={preset} onChange={event => setPreset(event.target.value as HistoryPreset)}>
+                            {Object.keys(historyPresets).map(value => <option key={value}>{value}</option>)}
+                        </select>
+                    </label>
+                </div>
+
                 {loading && Object.values(metrics).every(m => m.length === 0) ? (
                     <div className="h-96 animate-pulse bg-muted/40" role="status" aria-label="Loading metrics" />
                 ) : error && Object.values(metrics).every(m => m.length === 0) ? (
                     <div className="grid min-h-96 place-items-center text-destructive">{error}</div>
                 ) : (
-                    <div className="grid lg:grid-cols-3">
+                    <div className="grid lg:grid-cols-2">
                         {renderChart("CPU usage", metrics["cpu.used_percent"])}
                         {renderChart("Memory usage", metrics["mem.used_percent"])}
                         {renderChart("Disk usage", metrics["disk.used_percent"])}
+                        {renderChart("Network send", metrics["net.bytes_sent_per_second"], true)}
+                        {renderChart("Network receive", metrics["net.bytes_recv_per_second"], true)}
                     </div>
                 )}
             </section>

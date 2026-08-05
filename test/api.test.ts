@@ -10,8 +10,8 @@ test("fetchAggregatedMetrics encodes query parameters", async () => {
         return new Response(JSON.stringify({ code: 200, message: "ok", data: [] }))
     }
 
-    for (const interval of ["30s", "1m", "5m", "15m"]) {
-        await fetchAggregatedMetrics("host&group=東京", "disk used=50%", interval)
+    for (const interval of ["30s", "5m", "15m", "1h"]) {
+        await fetchAggregatedMetrics("host&group=東京", "disk used=50%", interval, "2026-08-01T00:00:00.000Z", "2026-08-01T01:00:00.000Z")
 
         const url = new URL(requested, "http://localhost")
         assert.equal(url.origin, "http://127.0.0.1:8080")
@@ -19,6 +19,8 @@ test("fetchAggregatedMetrics encodes query parameters", async () => {
         assert.equal(url.searchParams.get("agentId"), "host&group=東京")
         assert.equal(url.searchParams.get("name"), "disk used=50%")
         assert.equal(url.searchParams.get("interval"), interval)
+        assert.equal(url.searchParams.get("from"), "2026-08-01T00:00:00.000Z")
+        assert.equal(url.searchParams.get("to"), "2026-08-01T01:00:00.000Z")
     }
 })
 
