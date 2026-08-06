@@ -10,15 +10,17 @@ import {
     ResponsiveContainer,
     CartesianGrid,
 } from "recharts"
-import { Activity, ArrowLeft, Cpu, Fingerprint, HardDrive, MemoryStick } from "lucide-react"
+import { Activity, ArrowDown, ArrowLeft, ArrowUp, Cpu, Fingerprint, HardDrive, MemoryStick } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { fetchAgents, fetchAggregatedMetrics } from "../api/api"
+import { fetchAgents, fetchAggregatedMetrics, fetchRawMetrics } from "../api/api"
 import type { AggregatedMetric } from "../types/aggregated-metric"
 import type { Agent } from "../types/agent"
-import { bytesPerSecond, bytesToGB } from "../util/format"
+import type { ProcessSnapshot } from "../types/process"
+import { bytes, bytesPerSecond, bytesToGB } from "../util/format"
 import { historyPresets, historyRange } from "../util/history"
 import type { HistoryPreset } from "../util/history"
 import { osIcon } from "../util/os"
+import { mergeProcessMetrics } from "../util/processes"
 
 export default function AgentDetailPage() {
     const { id } = useParams()
@@ -34,6 +36,10 @@ export default function AgentDetailPage() {
     const [error, setError] = useState<string | null>(null)
     const [agent, setAgent] = useState<Agent | null>(null)
     const [preset, setPreset] = useState<HistoryPreset>("1h")
+    const [processes, setProcesses] = useState<ProcessSnapshot>({ processes: [] })
+    const [processLoading, setProcessLoading] = useState(true)
+    const [processError, setProcessError] = useState<string | null>(null)
+    const [processSort, setProcessSort] = useState<{ field: "cpuPercent" | "memoryRssBytes"; ascending: boolean }>({ field: "cpuPercent", ascending: false })
 
     const loadAllMetrics = useCallback(async () => {
         if (!id) return
@@ -70,11 +76,46 @@ export default function AgentDetailPage() {
         }
     }, [id, preset])
 
+    const loadProcesses = useCallback(async () => {
+        if (!id) return
+        const to = new Date()
+        const from = new Date(to.getTime() - 60 * 60 * 1000)
+        try {
+            const [cpu, memory, count] = await Promise.all([
+                fetchRawMetrics(id, "process.cpu_percent", from.toISOString(), to.toISOString()),
+                fetchRawMetrics(id, "process.memory_rss_bytes", from.toISOString(), to.toISOString()),
+                fetchRawMetrics(id, "process.count", from.toISOString(), to.toISOString()),
+            ])
+            setProcesses(mergeProcessMetrics(cpu, memory, count))
+            setProcessError(null)
+        } catch (err) {
+            console.error(err)
+            setProcessError("Failed to load process metrics")
+        } finally {
+            setProcessLoading(false)
+        }
+    }, [id])
+
     useEffect(() => {
         loadAllMetrics()
         const interval = setInterval(loadAllMetrics, 5000)
         return () => clearInterval(interval)
     }, [loadAllMetrics])
+
+    useEffect(() => {
+        loadProcesses()
+        const interval = setInterval(loadProcesses, 5000)
+        return () => clearInterval(interval)
+    }, [loadProcesses])
+
+    const sortedProcesses = [...processes.processes].sort((a, b) => {
+        const difference = (a[processSort.field] ?? -1) - (b[processSort.field] ?? -1)
+        return processSort.ascending ? difference : -difference
+    })
+
+    const changeProcessSort = (field: "cpuPercent" | "memoryRssBytes") => {
+        setProcessSort(current => ({ field, ascending: current.field === field ? !current.ascending : false }))
+    }
 
     const renderChart = (title: string, data: AggregatedMetric[], network = false) => {
         const latestValue = data.length > 0 ? data[data.length - 1].avgValue : null
@@ -186,8 +227,65 @@ export default function AgentDetailPage() {
                         {renderChart("Network receive", metrics["net.bytes_recv_per_second"], true)}
                     </div>
                 )}
+
+                <div className="border-t border-border">
+                    <div className="flex flex-wrap items-end justify-between gap-2 border-b border-border px-4 py-4 sm:px-6">
+                        <div>
+                            <h2 className="font-semibold">Processes</h2>
+                            <p className="text-sm text-muted-foreground">{processes.count === undefined ? "Process count unavailable" : `${processes.count.toLocaleString()} running`}</p>
+                        </div>
+                        <div className="text-right text-xs text-muted-foreground">
+                            {processError && processes.processes.length > 0 && <p className="text-destructive">Refresh failed, showing the last sample</p>}
+                            {processes.sampledAt && <p>Sampled {new Date(processes.sampledAt).toLocaleString()}</p>}
+                        </div>
+                    </div>
+                    {processLoading && processes.processes.length === 0 ? (
+                        <div className="h-40 animate-pulse bg-muted/40" role="status" aria-label="Loading processes" />
+                    ) : processError && processes.processes.length === 0 ? (
+                        <div className="grid min-h-40 place-items-center text-destructive">{processError}</div>
+                    ) : processes.processes.length === 0 ? (
+                        <div className="grid min-h-40 place-items-center px-4 text-center text-sm text-muted-foreground">
+                            Process telemetry is off or has not reported yet. Set KANSHI_PROCESS_METRICS=true on this agent to opt in.
+                        </div>
+                    ) : (
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left text-sm">
+                                <caption className="sr-only">Newest process CPU and resident-memory metrics</caption>
+                                <thead className="text-xs text-muted-foreground">
+                                    <tr className="border-b border-border">
+                                        <th className="px-4 py-3 font-medium sm:px-6">Process</th>
+                                        <th className="px-4 py-3 font-medium">PID</th>
+                                        <SortableHeading label="CPU" active={processSort.field === "cpuPercent"} ascending={processSort.ascending} onClick={() => changeProcessSort("cpuPercent")} />
+                                        <SortableHeading label="RSS" active={processSort.field === "memoryRssBytes"} ascending={processSort.ascending} onClick={() => changeProcessSort("memoryRssBytes")} />
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {sortedProcesses.map(process => (
+                                        <tr key={`${process.pid}:${process.process}`} className="border-b border-border last:border-0">
+                                            <td className="max-w-80 truncate px-4 py-3 font-medium sm:px-6">{process.process}</td>
+                                            <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{process.pid}</td>
+                                            <td className="px-4 py-3 tabular-nums">{process.cpuPercent === undefined ? "Unavailable" : `${process.cpuPercent.toFixed(1)}%`}</td>
+                                            <td className="px-4 py-3 tabular-nums">{process.memoryRssBytes === undefined ? "Unavailable" : bytes(process.memoryRssBytes)}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </div>
             </section>
         </div>
+    )
+}
+
+function SortableHeading({ label, active, ascending, onClick }: { label: string; active: boolean; ascending: boolean; onClick: () => void }) {
+    return (
+        <th className="px-4 py-3 font-medium" aria-sort={active ? (ascending ? "ascending" : "descending") : "none"}>
+            <button type="button" className="flex items-center gap-1 rounded-sm outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring" onClick={onClick}>
+                {label}
+                {active && (ascending ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />)}
+            </button>
+        </th>
     )
 }
 

@@ -24,6 +24,22 @@ test("fetchAggregatedMetrics encodes query parameters", async () => {
     }
 })
 
+test("fetchRawMetrics encodes query parameters", async () => {
+    const { fetchRawMetrics } = await import("../src/api/api.ts")
+    let requested = ""
+    globalThis.fetch = async (input) => {
+        requested = String(input)
+        return new Response(JSON.stringify({ code: 200, message: "ok", data: [] }))
+    }
+    await fetchRawMetrics("host&group=東京", "process.cpu_percent", "2026-08-06T00:00:00Z", "2026-08-06T01:00:00Z")
+    const url = new URL(requested, "http://localhost")
+    assert.ok(url.pathname.endsWith("/metrics"))
+    assert.equal(url.searchParams.get("agentId"), "host&group=東京")
+    assert.equal(url.searchParams.get("name"), "process.cpu_percent")
+    assert.equal(url.searchParams.get("from"), "2026-08-06T00:00:00Z")
+    assert.equal(url.searchParams.get("to"), "2026-08-06T01:00:00Z")
+})
+
 test("API requests send and clear the dashboard key", async () => {
     const values = new Map([["kanshi.dashboardKey", "dashboard-secret"]])
     Object.defineProperty(globalThis, "localStorage", { configurable: true, value: {

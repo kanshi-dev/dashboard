@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/kanshi-dev/dashboard/actions/workflows/ci.yaml/badge.svg)](https://github.com/kanshi-dev/dashboard/actions/workflows/ci.yaml)
 
-Kanshi Dashboard is the authenticated React interface for a Kanshi deployment. It shows host health, alerts, service summaries, trace search, span waterfalls, and trace-correlated logs.
+Kanshi Dashboard is the authenticated React interface for a Kanshi deployment. It shows host health, optional process telemetry, alerts, service summaries, trace search, span waterfalls, and trace-correlated logs.
 
 ![Kanshi fleet overview](https://raw.githubusercontent.com/kanshi-dev/demo/main/imgs/agents.png)
 
@@ -13,6 +13,7 @@ Kanshi Dashboard is the authenticated React interface for a Kanshi deployment. I
 - Polls agents and metrics every five seconds
 - Supports CPU, memory, disk, network send, and network receive resources
 - Supports one-hour, six-hour, 24-hour, and seven-day history presets with bounded aggregation
+- Shows the newest opt-in process count, CPU, and resident-memory samples on Agent detail pages
 - Manages alert rules and shows active alerts and history with webhook delivery status
 - Shows application request volume, errors, latency, bounded trace search, accessible span waterfalls, and correlated logs
 - Preserves loaded data during refresh failures and provides retry
