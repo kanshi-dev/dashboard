@@ -24,3 +24,12 @@ test("process metrics preserve missing CPU values", () => {
         processes: [{ pid: 8, process: "first sample", memoryRssBytes: 1024 }],
     })
 })
+
+test("process metrics compare timestamps chronologically", () => {
+    const snapshot = mergeProcessMetrics([
+        point("process.cpu_percent", 2, "2026-08-06T10:00:00Z", ["pid=1", "process=older"]),
+        point("process.cpu_percent", 1, "2026-08-06T10:00:00.500Z", ["pid=1", "process=newer"]),
+    ], [], [])
+    assert.equal(snapshot.processes[0].process, "newer")
+    assert.equal(snapshot.sampledAt, "2026-08-06T10:00:00.500Z")
+})

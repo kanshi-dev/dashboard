@@ -1,7 +1,7 @@
 import type { ProcessMetric, ProcessSnapshot, RawMetric } from "../types/process"
 
 function newest(points: RawMetric[]): RawMetric[] {
-    const timestamp = points.reduce((latest, point) => point.timestamp > latest ? point.timestamp : latest, "")
+    const timestamp = points.reduce((latest, point) => !latest || Date.parse(point.timestamp) > Date.parse(latest) ? point.timestamp : latest, "")
     return points.filter(point => point.timestamp === timestamp)
 }
 
@@ -24,7 +24,7 @@ export function mergeProcessMetrics(cpu: RawMetric[], memory: RawMetric[], count
             processes.set(key, { ...identity, ...processes.get(key), [field]: point.value })
         }
     }
-    const sampledAt = [...cpu, ...memory, ...count].reduce((latest, point) => point.timestamp > latest ? point.timestamp : latest, "")
+    const sampledAt = [...cpu, ...memory, ...count].reduce((latest, point) => !latest || Date.parse(point.timestamp) > Date.parse(latest) ? point.timestamp : latest, "")
     return {
         count: newest(count)[0]?.value,
         sampledAt: sampledAt || undefined,
