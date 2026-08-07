@@ -78,13 +78,12 @@ export default function AgentDetailPage() {
 
     const loadProcesses = useCallback(async () => {
         if (!id) return
-        const to = new Date()
-        const from = new Date(to.getTime() - 60 * 60 * 1000)
+        const range = historyRange("1h")
         try {
             const [cpu, memory, count] = await Promise.all([
-                fetchRawMetrics(id, "process.cpu_percent", from.toISOString(), to.toISOString()),
-                fetchRawMetrics(id, "process.memory_rss_bytes", from.toISOString(), to.toISOString()),
-                fetchRawMetrics(id, "process.count", from.toISOString(), to.toISOString()),
+                fetchRawMetrics(id, "process.cpu_percent", range.from, range.to),
+                fetchRawMetrics(id, "process.memory_rss_bytes", range.from, range.to),
+                fetchRawMetrics(id, "process.count", range.from, range.to),
             ])
             setProcesses(mergeProcessMetrics(cpu, memory, count))
             setProcessError(null)
