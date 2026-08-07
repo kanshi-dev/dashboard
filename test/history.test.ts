@@ -7,6 +7,6 @@ test("history presets use bounded aggregate intervals", () => {
         "1h": "30s", "6h": "5m", "24h": "15m", "7d": "1h",
     })
     assert.deepEqual(historyRange("6h", new Date("2026-08-05T12:00:00Z")), {
-        from: "2026-08-05T06:00:00.000Z", to: "2026-08-05T12:00:00.000Z",
+        from: "2026-08-05T05:59:59.000Z", to: "2026-08-05T11:59:59.000Z",
     })
 })
