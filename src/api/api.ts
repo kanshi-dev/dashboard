@@ -3,6 +3,7 @@ import type { AggregatedMetric } from "../types/aggregated-metric"
 import type { AlertRule, AlertRuleInput } from "../types/alert-rule"
 import type { AlertEvent } from "../types/alert-event"
 import type { LogRecord, ServiceSummary, TraceDetail, TraceFilters, TraceSummary } from "../types/telemetry"
+import type { RawMetric } from "../types/process"
 
 const API_URL =
     import.meta.env?.VITE_API_URL ||
@@ -53,6 +54,11 @@ export async function fetchAggregatedMetrics(
 ): Promise<AggregatedMetric[]> {
     const params = new URLSearchParams({ agentId, name, interval, from, to })
     return (await request<AggregatedMetric[]>(`/metrics/aggregate?${params}`)) || []
+}
+
+export async function fetchRawMetrics(agentId: string, name: string, from: string, to: string): Promise<RawMetric[]> {
+    const params = new URLSearchParams({ agentId, name, from, to })
+    return (await request<RawMetric[]>(`/metrics?${params}`)) || []
 }
 
 export async function fetchAlertRules(): Promise<AlertRule[]> {

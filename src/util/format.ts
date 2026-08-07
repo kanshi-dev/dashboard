@@ -13,3 +13,7 @@ export function bytesPerSecond(value: number): string {
     }
     return `${amount.toFixed(amount >= 10 || unit === 0 ? 0 : 1)} ${units[unit]}`
 }
+
+export function bytes(value: number): string {
+    return bytesPerSecond(value).replace("/s", "")
+}

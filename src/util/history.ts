@@ -8,5 +8,6 @@ export const historyPresets: Record<HistoryPreset, { durationMs: number; interva
 }
 
 export function historyRange(preset: HistoryPreset, now = new Date()) {
-    return { from: new Date(now.getTime() - historyPresets[preset].durationMs).toISOString(), to: now.toISOString() }
+    const to = new Date(now.getTime() - 1000)
+    return { from: new Date(to.getTime() - historyPresets[preset].durationMs).toISOString(), to: to.toISOString() }
 }
