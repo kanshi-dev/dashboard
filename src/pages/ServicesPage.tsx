@@ -5,6 +5,7 @@ import { fetchServices, fetchTraces } from "@/api/api"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import type { ServiceSummary, TraceFilters, TraceSummary } from "@/types/telemetry"
+import { agentProcessPath } from "@/util/telemetry"
 
 export default function ServicesPage() {
     const [services, setServices] = useState<ServiceSummary[]>([])
@@ -76,17 +77,28 @@ export default function ServicesPage() {
                 ) : (
                     <div className="grid gap-px bg-border sm:grid-cols-2 lg:grid-cols-3">
                         {services.map(service => (
-                            <button key={service.serviceName} onClick={() => selectService(service.serviceName)} className="bg-card p-4 text-left transition-colors hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset sm:p-5">
-                                <span className="flex items-center justify-between gap-2">
-                                    <span className="truncate font-medium">{service.serviceName}</span>
-                                    <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-                                </span>
-                                <span className="mt-5 grid grid-cols-3 gap-3 text-xs text-muted-foreground">
-                                    <Metric label="Requests" value={service.requestCount.toLocaleString()} />
-                                    <Metric label="Errors" value={`${(service.errorRate * 100).toFixed(1)}%`} danger={service.errorCount > 0} />
-                                    <Metric label="P95" value={formatDuration(service.p95DurationMs)} />
-                                </span>
-                            </button>
+                            <div key={service.serviceName} className="bg-card">
+                                <button onClick={() => selectService(service.serviceName)} className="w-full p-4 text-left transition-colors hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset sm:p-5">
+                                    <span className="flex items-center justify-between gap-2">
+                                        <span className="truncate font-medium">{service.serviceName}</span>
+                                        <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                                    </span>
+                                    <span className="mt-5 grid grid-cols-3 gap-3 text-xs text-muted-foreground">
+                                        <Metric label="Requests" value={service.requestCount.toLocaleString()} />
+                                        <Metric label="Errors" value={`${(service.errorRate * 100).toFixed(1)}%`} danger={service.errorCount > 0} />
+                                        <Metric label="P95" value={formatDuration(service.p95DurationMs)} />
+                                    </span>
+                                </button>
+                                {service.hosts?.length > 0 && (
+                                    <div className="flex flex-wrap gap-x-3 gap-y-1 border-t border-border px-4 py-2 text-xs text-muted-foreground sm:px-5">
+                                        {service.hosts.map((host, index) => agentProcessPath(host) ? (
+                                            <Link key={`${host.agentId}-${host.hostName}`} to={agentProcessPath(host)!} className="truncate underline-offset-4 hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                                                {host.hostName}
+                                            </Link>
+                                        ) : <span key={`${host.hostName}-${index}`} className="truncate">{host.hostName}</span>)}
+                                    </div>
+                                )}
+                            </div>
                         ))}
                     </div>
                 )}

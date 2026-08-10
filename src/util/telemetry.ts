@@ -1,4 +1,8 @@
-import type { Span } from "@/types/telemetry"
+import type { Host, Span } from "@/types/telemetry"
+
+export function agentProcessPath(host?: Host) {
+    return host?.agentId ? `/agents/${encodeURIComponent(host.agentId)}#processes` : undefined
+}
 
 export function orderSpans(spans: Span[]) {
     const children = new Map<string, Span[]>()
