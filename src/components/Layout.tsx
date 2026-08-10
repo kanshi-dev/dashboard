@@ -1,4 +1,4 @@
-import type { ReactNode } from "react"
+import { useState, type ReactNode } from "react"
 import { ChevronDown, LogOut } from "lucide-react"
 import { Link, NavLink } from "react-router-dom"
 import { clearDashboardKey } from "@/api/api"
@@ -8,11 +8,22 @@ import {
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuLabel,
+    DropdownMenuRadioGroup,
+    DropdownMenuRadioItem,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { getTheme, saveTheme, type Theme } from "@/theme"
 
 export default function Layout({ children }: { children: ReactNode }) {
+    const [theme, setTheme] = useState(getTheme)
+
+    function changeTheme(value: string) {
+        const nextTheme = value as Theme
+        saveTheme(nextTheme)
+        setTheme(nextTheme)
+    }
+
     return (
         <div className="min-h-screen bg-background">
             <header className="border-b border-border bg-card/60">
@@ -34,6 +45,12 @@ export default function Layout({ children }: { children: ReactNode }) {
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-52">
+                            <DropdownMenuLabel>Theme</DropdownMenuLabel>
+                            <DropdownMenuRadioGroup value={theme} onValueChange={changeTheme}>
+                                <DropdownMenuRadioItem value="light">Light</DropdownMenuRadioItem>
+                                <DropdownMenuRadioItem value="dark">Dark</DropdownMenuRadioItem>
+                            </DropdownMenuRadioGroup>
+                            <DropdownMenuSeparator />
                             <DropdownMenuLabel>Dashboard access</DropdownMenuLabel>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem variant="destructive" onSelect={clearDashboardKey}>
