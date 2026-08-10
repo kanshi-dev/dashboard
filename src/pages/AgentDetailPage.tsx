@@ -17,7 +17,7 @@ import type { AggregatedMetric } from "../types/aggregated-metric"
 import type { Agent } from "../types/agent"
 import type { ProcessSnapshot } from "../types/process"
 import { bytes, bytesPerSecond, bytesToGB } from "../util/format"
-import { historyPresets, historyRange } from "../util/history"
+import { historyPresets, historyRange, metricTick } from "../util/history"
 import type { HistoryPreset } from "../util/history"
 import { osIcon } from "../util/os"
 import { mergeProcessMetrics } from "../util/processes"
@@ -52,10 +52,7 @@ export default function AgentDetailPage() {
                     const data = await fetchAggregatedMetrics(id, name, historyPresets[preset].interval, range.from, range.to)
                     return {
                         name,
-                        data: data.map(m => ({
-                            ...m,
-                            bucket: new Date(m.bucket).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }),
-                        }))
+                        data,
                     }
                 })),
             ])
@@ -142,6 +139,8 @@ export default function AgentDetailPage() {
                                         fontSize={10} 
                                         tickLine={false} 
                                         axisLine={false} 
+                                        minTickGap={28}
+                                        tickFormatter={metricTick}
                                     />
                                     <YAxis 
                                         domain={network ? undefined : [0, 100]}
@@ -158,6 +157,7 @@ export default function AgentDetailPage() {
                                             color: "var(--card-foreground)",
                                             fontSize: '12px'
                                         }}
+                                        labelFormatter={(value) => value == null ? "" : new Date(String(value)).toLocaleString()}
                                         formatter={(value) => network ? bytesPerSecond(Number(value)) : `${Number(value).toFixed(1)}%`}
                                     />
                                     <Line
