@@ -52,10 +52,7 @@ export default function AgentDetailPage() {
                     const data = await fetchAggregatedMetrics(id, name, historyPresets[preset].interval, range.from, range.to)
                     return {
                         name,
-                        data: data.map(m => ({
-                            ...m,
-                            bucket: new Date(m.bucket).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }),
-                        }))
+                        data,
                     }
                 })),
             ])
@@ -142,6 +139,8 @@ export default function AgentDetailPage() {
                                         fontSize={10} 
                                         tickLine={false} 
                                         axisLine={false} 
+                                        minTickGap={28}
+                                        tickFormatter={(value) => new Date(value).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                                     />
                                     <YAxis 
                                         domain={network ? undefined : [0, 100]}
@@ -158,6 +157,7 @@ export default function AgentDetailPage() {
                                             color: "var(--card-foreground)",
                                             fontSize: '12px'
                                         }}
+                                        labelFormatter={(value) => new Date(value).toLocaleString()}
                                         formatter={(value) => network ? bytesPerSecond(Number(value)) : `${Number(value).toFixed(1)}%`}
                                     />
                                     <Line
