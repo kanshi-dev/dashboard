@@ -5,6 +5,12 @@ export interface ServiceSummary {
     errorRate: number
     avgDurationMs: number
     p95DurationMs: number
+    hosts: Host[]
+}
+
+export interface Host {
+    agentId?: string
+    hostName: string
 }
 
 export interface TraceSummary {
@@ -31,6 +37,7 @@ export interface Span {
     endTime: string
     durationMs: number
     attributes: Record<string, unknown>
+    host?: Host
 }
 
 export interface TraceDetail {

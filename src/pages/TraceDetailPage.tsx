@@ -4,7 +4,7 @@ import { Link, useParams } from "react-router-dom"
 import { fetchLogs, fetchTrace } from "@/api/api"
 import { Button } from "@/components/ui/button"
 import type { LogRecord, TraceDetail } from "@/types/telemetry"
-import { orderSpans } from "@/util/telemetry"
+import { agentProcessPath, orderSpans } from "@/util/telemetry"
 
 export default function TraceDetailPage() {
     const { id = "" } = useParams()
@@ -74,7 +74,8 @@ export default function TraceDetailPage() {
                                 const left = ((Date.parse(span.startTime) - start) / total) * 100
                                 const width = Math.max((span.durationMs / total) * 100, 0.6)
                                 return (
-                                    <button key={span.spanId} onClick={() => setSelectedSpan(current => current === span.spanId ? "" : span.spanId)} aria-pressed={selectedSpan === span.spanId} className="grid w-full grid-cols-[minmax(14rem,1fr)_minmax(18rem,2fr)_6rem] items-center gap-4 border-b border-border px-4 py-3 text-left text-sm last:border-0 hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset sm:px-6">
+                                    <div key={span.spanId} className="border-b border-border last:border-0">
+                                        <button onClick={() => setSelectedSpan(current => current === span.spanId ? "" : span.spanId)} aria-pressed={selectedSpan === span.spanId} className="grid w-full grid-cols-[minmax(14rem,1fr)_minmax(18rem,2fr)_6rem] items-center gap-4 px-4 py-3 text-left text-sm hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset sm:px-6">
                                         <span className="min-w-0" style={{ paddingLeft: Math.min(depth, 5) * 16 }}>
                                             <span className="flex items-center gap-2">
                                                 {span.statusCode === 2 && <CircleAlert className="h-3.5 w-3.5 shrink-0 text-destructive" />}
@@ -86,7 +87,11 @@ export default function TraceDetailPage() {
                                             <span className={`absolute top-1 h-3 min-w-px rounded-sm ${span.statusCode === 2 ? "bg-destructive" : "bg-chart-2"}`} style={{ left: `${left}%`, width: `${Math.min(width, 100 - left)}%` }} />
                                         </span>
                                         <span className="text-right tabular-nums">{formatDuration(span.durationMs)}</span>
-                                    </button>
+                                        </button>
+                                        {span.host && <div className="px-4 pb-2 pl-6 text-xs text-muted-foreground sm:px-6 sm:pl-8">
+                                            {agentProcessPath(span.host) ? <Link to={agentProcessPath(span.host)!} className="underline-offset-4 hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Host: {span.host.hostName}</Link> : <span>Host: {span.host.hostName}</span>}
+                                        </div>}
+                                    </div>
                                 )
                             })}
                         </div>

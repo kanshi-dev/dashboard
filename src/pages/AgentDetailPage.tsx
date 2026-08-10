@@ -227,7 +227,7 @@ export default function AgentDetailPage() {
                     </div>
                 )}
 
-                <div className="border-t border-border">
+                <div id="processes" className="scroll-mt-6 border-t border-border">
                     <div className="flex flex-wrap items-end justify-between gap-2 border-b border-border px-4 py-4 sm:px-6">
                         <div>
                             <h2 className="font-semibold">Processes</h2>
