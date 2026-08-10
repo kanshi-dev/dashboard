@@ -157,7 +157,7 @@ export default function AgentDetailPage() {
                                             color: "var(--card-foreground)",
                                             fontSize: '12px'
                                         }}
-                                        labelFormatter={(value) => new Date(value).toLocaleString()}
+                                        labelFormatter={(value) => value == null ? "" : new Date(String(value)).toLocaleString()}
                                         formatter={(value) => network ? bytesPerSecond(Number(value)) : `${Number(value).toFixed(1)}%`}
                                     />
                                     <Line
