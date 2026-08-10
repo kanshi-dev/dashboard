@@ -10,7 +10,7 @@ labels: enhancement
 
 ## Why this matters
 
-<!-- The problem this solves or the value it adds. Check ROADMAP.md first — post-v1 ideas belong there, not on the milestone. -->
+<!-- The problem this solves or the value it adds. Check the project roadmap before assigning a milestone. -->
 
 ## Acceptance Criteria
 

@@ -4,6 +4,8 @@
 
 Kanshi Dashboard is the authenticated React interface for a Kanshi deployment. It shows host health, optional process telemetry, alerts, service summaries, trace search, span waterfalls, and trace-correlated logs.
 
+The current stable release is `v1.3.0`.
+
 ![Kanshi fleet overview](https://raw.githubusercontent.com/kanshi-dev/demo/main/imgs/agents.png)
 
 ![Kanshi agent details](https://raw.githubusercontent.com/kanshi-dev/demo/main/imgs/agent-details.png)

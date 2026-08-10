@@ -19,6 +19,6 @@ Closes #
 ## Checklist
 
 - [ ] Commits follow Conventional Commits (`feat:`, `fix:`, `docs:`, `chore:`, ...)
-- [ ] Linked to an issue on the v1.0.0 board (or explained why not)
+- [ ] Linked to a planned issue (or explained why not)
 - [ ] No generated files edited by hand
 - [ ] CONTRIBUTING.md conventions followed
