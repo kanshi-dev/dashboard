@@ -1,6 +1,6 @@
 # Contributing to kanshi-dashboard
 
-Kanshi is built from three repos: [core](https://github.com/kanshi-dev/core), [agent](https://github.com/kanshi-dev/agent), and [dashboard](https://github.com/kanshi-dev/dashboard). Work is planned on the [Kanshi v1.0.0 project board](https://github.com/orgs/kanshi-dev/projects/1); the roadmap and priorities live there. Please pick up (or file) an issue before opening a PR.
+Kanshi is built from three repos: [core](https://github.com/kanshi-dev/core), [agent](https://github.com/kanshi-dev/agent), and [dashboard](https://github.com/kanshi-dev/dashboard). Work is planned on the [Kanshi project board](https://github.com/orgs/kanshi-dev/projects/1); the roadmap and priorities live there. Please pick up (or file) an issue before opening a PR.
 
 ## Workflow
 
