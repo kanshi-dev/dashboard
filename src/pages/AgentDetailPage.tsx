@@ -17,7 +17,7 @@ import type { AggregatedMetric } from "../types/aggregated-metric"
 import type { Agent } from "../types/agent"
 import type { ProcessSnapshot } from "../types/process"
 import { bytes, bytesPerSecond, bytesToGB } from "../util/format"
-import { historyPresets, historyRange } from "../util/history"
+import { historyPresets, historyRange, metricTick } from "../util/history"
 import type { HistoryPreset } from "../util/history"
 import { osIcon } from "../util/os"
 import { mergeProcessMetrics } from "../util/processes"
@@ -140,7 +140,7 @@ export default function AgentDetailPage() {
                                         tickLine={false} 
                                         axisLine={false} 
                                         minTickGap={28}
-                                        tickFormatter={(value) => new Date(value).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                                        tickFormatter={metricTick}
                                     />
                                     <YAxis 
                                         domain={network ? undefined : [0, 100]}

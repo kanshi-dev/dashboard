@@ -11,3 +11,7 @@ export function historyRange(preset: HistoryPreset, now = new Date()) {
     const to = new Date(now.getTime() - 1000)
     return { from: new Date(to.getTime() - historyPresets[preset].durationMs).toISOString(), to: to.toISOString() }
 }
+
+export function metricTick(timestamp: string) {
+    return new Date(timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+}
