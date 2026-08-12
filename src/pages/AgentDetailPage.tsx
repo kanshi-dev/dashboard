@@ -89,18 +89,11 @@ export default function AgentDetailPage() {
     }, [id])
 
     useEffect(() => {
-        if (activeTab !== "overview") return
-        loadAllMetrics()
-        const interval = setInterval(loadAllMetrics, 5000)
+        const load = activeTab === "overview" ? loadAllMetrics : loadProcesses
+        load()
+        const interval = setInterval(load, 5000)
         return () => clearInterval(interval)
-    }, [activeTab, loadAllMetrics])
-
-    useEffect(() => {
-        if (activeTab !== "processes") return
-        loadProcesses()
-        const interval = setInterval(loadProcesses, 5000)
-        return () => clearInterval(interval)
-    }, [activeTab, loadProcesses])
+    }, [activeTab, loadAllMetrics, loadProcesses])
 
     const sortedProcesses = [...processes.processes].sort((a, b) => {
         const difference = (a[processSort.field] ?? -1) - (b[processSort.field] ?? -1)
