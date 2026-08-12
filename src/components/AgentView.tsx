@@ -20,7 +20,7 @@ export default function AgentView({ agent, resourceValue }: { agent: Agent; reso
                 </div>
             </div>
             <p className="text-sm text-muted-foreground">{agent.platform} · {agent.arch}</p>
-            <p className="text-sm tabular-nums text-muted-foreground">{resourceValue === undefined ? "—" : `${resourceValue.toFixed(0)}%`}</p>
+            <p className="text-sm tabular-nums text-muted-foreground">{resourceValue === undefined ? "Unavailable" : `${resourceValue.toFixed(0)}%`}</p>
             <p className={`flex items-center gap-2 text-sm ${online ? "text-chart-2" : "text-destructive"}`}>
                 <span className={`h-2 w-2 rounded-full ${online ? "bg-chart-2" : "bg-destructive"}`} />
                 <span className="capitalize">{agent.status}</span>
