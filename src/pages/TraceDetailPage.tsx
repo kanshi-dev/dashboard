@@ -5,6 +5,7 @@ import { fetchLogs, fetchTrace } from "@/api/api"
 import { Button } from "@/components/ui/button"
 import type { LogRecord, TraceDetail } from "@/types/telemetry"
 import { agentProcessPath, orderSpans } from "@/util/telemetry"
+import { duration } from "@/util/format"
 
 export default function TraceDetailPage() {
     const { id = "" } = useParams()
@@ -53,7 +54,7 @@ export default function TraceDetailPage() {
                 <div className="flex min-h-14 flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3 sm:px-6">
                     <div>
                         <h1 className="font-medium">{trace?.spans[0]?.operation ?? "Trace waterfall"}</h1>
-                        <p className="text-xs text-muted-foreground">{trace ? `${trace.spans.length} spans · ${formatDuration(total)}` : "Parent-child request timing"}</p>
+                        <p className="text-xs text-muted-foreground">{trace ? `${trace.spans.length} spans · ${duration(total)}` : "Parent-child request timing"}</p>
                     </div>
                     {trace && <Status code={Math.max(...trace.spans.map(span => span.statusCode))} />}
                 </div>
@@ -83,10 +84,10 @@ export default function TraceDetailPage() {
                                             </span>
                                             <span className="block truncate text-xs text-muted-foreground">{span.serviceName} · {span.spanId}</span>
                                         </span>
-                                        <span className="relative h-5 rounded bg-muted" aria-label={`Starts ${formatDuration(Date.parse(span.startTime) - start)} into trace`}>
+                                        <span className="relative h-5 rounded bg-muted" aria-label={`Starts ${duration(Date.parse(span.startTime) - start)} into trace`}>
                                             <span className={`absolute top-1 h-3 min-w-px rounded-sm ${span.statusCode === 2 ? "bg-destructive" : "bg-chart-2"}`} style={{ left: `${left}%`, width: `${Math.min(width, 100 - left)}%` }} />
                                         </span>
-                                        <span className="text-right tabular-nums">{formatDuration(span.durationMs)}</span>
+                                        <span className="text-right tabular-nums">{duration(span.durationMs)}</span>
                                         </button>
                                         {span.host && <div className="px-4 pb-2 pl-6 text-xs text-muted-foreground sm:px-6 sm:pl-8">
                                             {agentProcessPath(span.host) ? <Link to={agentProcessPath(span.host)!} className="underline-offset-4 hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Host: {span.host.hostName}</Link> : <span>Host: {span.host.hostName}</span>}
@@ -136,8 +137,4 @@ function Status({ code }: { code: number }) {
 
 function severityClass(severity: string) {
     return /error|fatal/i.test(severity) ? "text-destructive" : /warn/i.test(severity) ? "text-chart-1" : "text-muted-foreground"
-}
-
-function formatDuration(value: number) {
-    return value >= 1000 ? `${(value / 1000).toFixed(2)}s` : `${value.toFixed(value < 10 ? 1 : 0)}ms`
 }
