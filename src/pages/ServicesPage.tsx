@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import type { ServiceSummary, TraceFilters, TraceSummary } from "@/types/telemetry"
 import { agentProcessPath } from "@/util/telemetry"
+import { duration } from "@/util/format"
 
 export default function ServicesPage() {
     const [services, setServices] = useState<ServiceSummary[]>([])
@@ -86,7 +87,7 @@ export default function ServicesPage() {
                                     <span className="mt-5 grid grid-cols-3 gap-3 text-xs text-muted-foreground">
                                         <Metric label="Requests" value={service.requestCount.toLocaleString()} />
                                         <Metric label="Errors" value={`${(service.errorRate * 100).toFixed(1)}%`} danger={service.errorCount > 0} />
-                                        <Metric label="P95" value={formatDuration(service.p95DurationMs)} />
+                                        <Metric label="P95" value={duration(service.p95DurationMs)} />
                                     </span>
                                 </button>
                                 {service.hosts?.length > 0 && (
@@ -151,7 +152,7 @@ export default function ServicesPage() {
                                     <span className="block truncate font-mono text-xs text-muted-foreground">{trace.traceId}</span>
                                 </span>
                                 <span className="truncate text-muted-foreground">{trace.serviceName}</span>
-                                <span className="tabular-nums">{formatDuration(trace.durationMs)}</span>
+                                <span className="tabular-nums">{duration(trace.durationMs)}</span>
                                 <Status code={trace.statusCode} />
                                 <ChevronRight className="h-4 w-4 text-muted-foreground" />
                             </Link>
@@ -170,8 +171,4 @@ function Metric({ label, value, danger = false }: { label: string; value: string
 function Status({ code }: { code: number }) {
     const failed = code === 2
     return <span className={`w-fit rounded-full px-2 py-0.5 text-xs font-medium ${failed ? "bg-destructive/10 text-destructive" : "bg-chart-2/15 text-chart-2"}`}>{failed ? "error" : "ok"}</span>
-}
-
-function formatDuration(value: number) {
-    return value >= 1000 ? `${(value / 1000).toFixed(2)}s` : `${value.toFixed(value < 10 ? 1 : 0)}ms`
 }

@@ -17,3 +17,7 @@ export function bytesPerSecond(value: number): string {
 export function bytes(value: number): string {
     return bytesPerSecond(value).replace("/s", "")
 }
+
+export function duration(value: number): string {
+    return value >= 1000 ? `${(value / 1000).toFixed(2)}s` : `${value.toFixed(value < 10 ? 1 : 0)}ms`
+}

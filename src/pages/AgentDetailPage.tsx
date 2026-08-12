@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "react-router-dom"
+import { useParams, useNavigate, useLocation } from "react-router-dom"
 import { useEffect, useState, useCallback } from "react"
 import type { ReactNode } from "react"
 import {
@@ -12,6 +12,7 @@ import {
 } from "recharts"
 import { Activity, ArrowDown, ArrowLeft, ArrowUp, Cpu, Fingerprint, HardDrive, MemoryStick } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { fetchAgents, fetchAggregatedMetrics, fetchRawMetrics } from "../api/api"
 import type { AggregatedMetric } from "../types/aggregated-metric"
 import type { Agent } from "../types/agent"
@@ -21,17 +22,17 @@ import { historyPresets, historyRange, metricTick } from "../util/history"
 import type { HistoryPreset } from "../util/history"
 import { osIcon } from "../util/os"
 import { mergeProcessMetrics } from "../util/processes"
+import { agentTabFromHash } from "../util/agent-tabs"
+import { hostResources } from "../util/host-resources"
+
+const emptyMetrics = () => Object.fromEntries(Object.values(hostResources).map(resource => [resource.metric, [] as AggregatedMetric[]]))
 
 export default function AgentDetailPage() {
     const { id } = useParams()
     const navigate = useNavigate()
-    const [metrics, setMetrics] = useState<Record<string, AggregatedMetric[]>>({
-        "cpu.used_percent": [],
-        "mem.used_percent": [],
-        "disk.used_percent": [],
-        "net.bytes_sent_per_second": [],
-        "net.bytes_recv_per_second": [],
-    })
+    const location = useLocation()
+    const activeTab = agentTabFromHash(location.hash)
+    const [metrics, setMetrics] = useState<Record<string, AggregatedMetric[]>>(emptyMetrics)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const [agent, setAgent] = useState<Agent | null>(null)
@@ -44,26 +45,11 @@ export default function AgentDetailPage() {
     const loadAllMetrics = useCallback(async () => {
         if (!id) return
         try {
-            const metricNames = ["cpu.used_percent", "mem.used_percent", "disk.used_percent", "net.bytes_sent_per_second", "net.bytes_recv_per_second"]
             const range = historyRange(preset)
-            const [agents, results] = await Promise.all([
-                fetchAgents(),
-                Promise.all(metricNames.map(async (name) => {
-                    const data = await fetchAggregatedMetrics(id, name, historyPresets[preset].interval, range.from, range.to)
-                    return {
-                        name,
-                        data,
-                    }
-                })),
-            ])
-
-            const newMetrics: Record<string, AggregatedMetric[]> = {}
-            results.forEach(res => {
-                newMetrics[res.name] = res.data
-            })
-
-            setAgent(agents.find(item => item.agentId === id) ?? null)
-            setMetrics(newMetrics)
+            setMetrics(Object.fromEntries(await Promise.all(Object.values(hostResources).map(async resource => [
+                resource.metric,
+                await fetchAggregatedMetrics(id, resource.metric, historyPresets[preset].interval, range.from, range.to),
+            ]))))
             setError(null)
         } catch (err) {
             console.error(err)
@@ -72,6 +58,16 @@ export default function AgentDetailPage() {
             setLoading(false)
         }
     }, [id, preset])
+
+    useEffect(() => {
+        if (!id) return
+        const refresh = () => fetchAgents()
+            .then(agents => setAgent(agents.find(item => item.agentId === id) ?? null))
+            .catch(err => console.error(err))
+        refresh()
+        const interval = setInterval(refresh, 5000)
+        return () => clearInterval(interval)
+    }, [id])
 
     const loadProcesses = useCallback(async () => {
         if (!id) return
@@ -93,21 +89,17 @@ export default function AgentDetailPage() {
     }, [id])
 
     useEffect(() => {
-        loadAllMetrics()
-        const interval = setInterval(loadAllMetrics, 5000)
+        const load = activeTab === "overview" ? loadAllMetrics : loadProcesses
+        load()
+        const interval = setInterval(load, 5000)
         return () => clearInterval(interval)
-    }, [loadAllMetrics])
-
-    useEffect(() => {
-        loadProcesses()
-        const interval = setInterval(loadProcesses, 5000)
-        return () => clearInterval(interval)
-    }, [loadProcesses])
+    }, [activeTab, loadAllMetrics, loadProcesses])
 
     const sortedProcesses = [...processes.processes].sort((a, b) => {
         const difference = (a[processSort.field] ?? -1) - (b[processSort.field] ?? -1)
         return processSort.ascending ? difference : -difference
     })
+    const hasMetrics = Object.values(metrics).some(metric => metric.length > 0)
 
     const changeProcessSort = (field: "cpuPercent" | "memoryRssBytes") => {
         setProcessSort(current => ({ field, ascending: current.field === field ? !current.ascending : false }))
@@ -117,7 +109,7 @@ export default function AgentDetailPage() {
         const latestValue = data.length > 0 ? data[data.length - 1].avgValue : null
 
         return (
-            <div className="border-b border-border p-4 last:border-b-0 lg:border-b-0 lg:border-r lg:p-6 lg:last:border-r-0">
+            <div key={title} className="border-b border-border p-4 last:border-b-0 lg:border-b-0 lg:border-r lg:p-6 lg:last:border-r-0">
                 <div className="flex items-center justify-between">
                     <h3 className="text-sm font-medium text-muted-foreground">{title}</h3>
                     {latestValue !== null && (
@@ -204,30 +196,36 @@ export default function AgentDetailPage() {
                     </div>
                 )}
 
-                <div className="flex justify-end border-b border-border px-4 py-3 sm:px-6">
-                    <label className="flex items-center gap-2 text-sm text-muted-foreground">
-                        History
-                        <select className="rounded-md border border-border bg-background px-3 py-2 text-foreground" value={preset} onChange={event => setPreset(event.target.value as HistoryPreset)}>
-                            {Object.keys(historyPresets).map(value => <option key={value}>{value}</option>)}
-                        </select>
-                    </label>
-                </div>
+                <Tabs value={activeTab} onValueChange={value => navigate({ pathname: location.pathname, search: location.search, hash: value === "processes" ? "#processes" : "" })}>
+                    <TabsList aria-label="Agent details">
+                        <TabsTrigger value="overview">Overview</TabsTrigger>
+                        <TabsTrigger value="processes">Processes</TabsTrigger>
+                    </TabsList>
 
-                {loading && Object.values(metrics).every(m => m.length === 0) ? (
+                    <TabsContent value="overview">
+                        <div className="flex justify-end border-b border-border px-4 py-3 sm:px-6">
+                            <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                                History
+                                <select className="rounded-md border border-border bg-background px-3 py-2 text-foreground" value={preset} onChange={event => setPreset(event.target.value as HistoryPreset)}>
+                                    {Object.keys(historyPresets).map(value => <option key={value}>{value}</option>)}
+                                </select>
+                            </label>
+                        </div>
+
+                {loading && !hasMetrics ? (
                     <div className="h-96 animate-pulse bg-muted/40" role="status" aria-label="Loading metrics" />
-                ) : error && Object.values(metrics).every(m => m.length === 0) ? (
+                ) : error && !hasMetrics ? (
                     <div className="grid min-h-96 place-items-center text-destructive">{error}</div>
                 ) : (
                     <div className="grid lg:grid-cols-2">
-                        {renderChart("CPU usage", metrics["cpu.used_percent"])}
-                        {renderChart("Memory usage", metrics["mem.used_percent"])}
-                        {renderChart("Disk usage", metrics["disk.used_percent"])}
-                        {renderChart("Network send", metrics["net.bytes_sent_per_second"], true)}
-                        {renderChart("Network receive", metrics["net.bytes_recv_per_second"], true)}
+                        {Object.values(hostResources).map(resource => renderChart(resource.chartTitle, metrics[resource.metric], resource.network))}
                     </div>
                 )}
 
-                <div id="processes" className="scroll-mt-6 border-t border-border">
+                    </TabsContent>
+
+                    <TabsContent value="processes">
+                <div>
                     <div className="flex flex-wrap items-end justify-between gap-2 border-b border-border px-4 py-4 sm:px-6">
                         <div>
                             <h2 className="font-semibold">Processes</h2>
@@ -272,6 +270,8 @@ export default function AgentDetailPage() {
                         </div>
                     )}
                 </div>
+                    </TabsContent>
+                </Tabs>
             </section>
         </div>
     )
