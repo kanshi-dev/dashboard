@@ -2,7 +2,7 @@ import { cloneElement, useCallback, useEffect, useMemo, useState } from "react"
 import type { ReactElement } from "react"
 import { Download } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { createProfile, downloadProfile, fetchProfiles } from "@/api/api"
+import { createProfile, createTraceViewerSession, downloadProfile, fetchProfiles } from "@/api/api"
 import type { ProfileCapture, ProfileTarget, ProfileType } from "@/types/profile"
 import { bytes } from "@/util/format"
 import { profileDurations } from "@/util/profiles"
@@ -66,6 +66,13 @@ export default function AgentProfiles({ agentId, targets }: { agentId: string; t
         } catch (err) { setError(err instanceof Error ? err.message : "Download failed") }
     }
 
+    const openTrace = async (capture: ProfileCapture) => {
+        try {
+            const { url } = await createTraceViewerSession(capture.id)
+            window.open(url, "_blank", "noopener,noreferrer")
+        } catch (err) { setError(err instanceof Error ? err.message : "Trace viewer failed to start") }
+    }
+
     return <div>
         <div className="flex flex-wrap items-end gap-3 border-b border-border px-4 py-4 sm:px-6">
             {targets.length === 0 ? <p className="max-w-2xl text-sm text-muted-foreground">Profiling is off for this Agent. Configure KANSHI_PPROF_TARGETS or KANSHI_PPROF_DISCOVERY on the Agent to approve a Go service.</p> : <>
@@ -79,10 +86,10 @@ export default function AgentProfiles({ agentId, targets }: { agentId: string; t
         {loading && captures.length === 0 ? <div className="h-40 animate-pulse bg-muted/40" role="status" aria-label="Loading profiles" /> : captures.length === 0 ? <div className="grid min-h-40 place-items-center px-4 text-center text-sm text-muted-foreground">No captures yet. Choose an approved target and capture only when you need a diagnostic snapshot.</div> : <div className="divide-y divide-border">{captures.map(capture => <article key={capture.id} className="px-4 py-4 sm:px-6">
             <div className="flex flex-wrap items-start justify-between gap-3">
                 <div><div className="flex items-center gap-2"><h3 className="font-medium">{types.find(type => type.value === capture.profileType)?.label}</h3><Status state={capture.state} /></div><p className="mt-1 text-sm text-muted-foreground">{capture.targetName}{capture.durationSeconds ? ` · ${capture.durationSeconds}s` : ""} · {new Date(capture.createdAt).toLocaleString()}</p></div>
-                {capture.state === "completed" && <div className="flex gap-2">{capture.profileType !== "trace" && <Button variant="outline" size="sm" aria-expanded={selected === capture.id} onClick={() => setSelected(current => current === capture.id ? null : capture.id)}>{selected === capture.id ? "Hide flamegraph" : "View flamegraph"}</Button>}<Button variant="outline" size="sm" onClick={() => download(capture)}><Download className="h-4 w-4" />Download {capture.size ? bytes(capture.size) : "raw"}</Button></div>}
+                {capture.state === "completed" && <div className="flex gap-2">{capture.profileType === "trace" && <Button variant="outline" size="sm" onClick={() => openTrace(capture)}>Open trace viewer</Button>}{capture.profileType !== "trace" && <Button variant="outline" size="sm" aria-expanded={selected === capture.id} onClick={() => setSelected(current => current === capture.id ? null : capture.id)}>{selected === capture.id ? "Hide flamegraph" : "View flamegraph"}</Button>}<Button variant="outline" size="sm" onClick={() => download(capture)}><Download className="h-4 w-4" />Download {capture.size ? bytes(capture.size) : "raw"}</Button></div>}
             </div>
             {capture.error && <p className="mt-3 text-sm text-destructive">{capture.error}</p>}
-            {capture.profileType === "trace" && capture.state === "completed" && <p className="mt-3 max-w-2xl text-sm text-muted-foreground">Open the downloaded trace with <code className="font-mono text-foreground">go tool trace {capture.filename ?? "trace.out"}</code>. Execution traces are not flamegraphs.</p>}
+            {capture.profileType === "trace" && capture.state === "completed" && <p className="mt-3 max-w-2xl text-sm text-muted-foreground">View this execution trace in Kanshi. The raw artifact remains available for export.</p>}
             {selected === capture.id && capture.state === "completed" && capture.profileType !== "trace" && <ProfileFlamegraph capture={capture} />}
         </article>)}</div>}
     </div>

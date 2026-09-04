@@ -26,12 +26,12 @@ export function clearDashboardKey() {
     globalThis.dispatchEvent?.(new Event(AUTH_REQUIRED_EVENT))
 }
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+async function request<T>(path: string, init?: RequestInit, credentials = false): Promise<T> {
 	const key = typeof globalThis.localStorage?.getItem === "function" ? globalThis.localStorage.getItem(DASHBOARD_KEY) : null
     const headers: Record<string, string> = {}
     if (key) headers.Authorization = `Bearer ${key}`
     if (init?.body) headers["Content-Type"] = "application/json"
-    const res = await fetch(`${API_URL}${path}`, { ...init, headers })
+    const res = await fetch(`${API_URL}${path}`, { ...init, headers, ...(credentials ? { credentials: "include" as RequestCredentials } : {}) })
     if (res.status === 401) clearDashboardKey()
     if (!res.ok) {
         if (res.status === 401) throw new Error("Invalid dashboard key")
@@ -143,4 +143,8 @@ export async function downloadProfile(id: string): Promise<{ blob: Blob; filenam
     const disposition = res.headers.get("Content-Disposition") ?? ""
     const filename = disposition.match(/filename="?([^";]+)"?/)?.[1] ?? `kanshi-profile-${id}`
     return { blob: await res.blob(), filename }
+}
+
+export function createTraceViewerSession(id: string): Promise<{ url: string }> {
+    return request<{ url: string }>(`/profiles/${encodeURIComponent(id)}/trace/session`, { method: "POST" }, true)
 }
