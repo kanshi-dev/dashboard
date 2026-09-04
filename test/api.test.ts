@@ -131,3 +131,39 @@ test("fetchTraces encodes application telemetry filters", async () => {
     assert.equal(url.searchParams.get("minDurationMs"), "250")
     assert.equal(url.searchParams.get("traceId"), "a".repeat(32))
 })
+
+test("profile APIs encode identifiers and capture input", async () => {
+    const { createProfile, fetchProfileFlamegraph, fetchProfiles } = await import("../src/api/api.ts")
+    const requests: { url: string; init?: RequestInit }[] = []
+    globalThis.fetch = async (input, init) => {
+        requests.push({ url: String(input), init })
+        return new Response(JSON.stringify({ code: 200, message: "ok", data: [] }))
+    }
+    await createProfile("agent/a", { targetName: "checkout", profileType: "cpu", durationSeconds: 10 })
+    await fetchProfiles("agent/a", 25)
+    await fetchProfileFlamegraph("capture/a", "cpu")
+
+    assert.ok(requests[0].url.endsWith("/agents/agent%2Fa/profiles"))
+    assert.equal(requests[0].init?.method, "POST")
+    assert.deepEqual(JSON.parse(String(requests[0].init?.body)), { targetName: "checkout", profileType: "cpu", durationSeconds: 10 })
+    assert.equal(new URL(requests[1].url).searchParams.get("limit"), "25")
+    assert.ok(requests[2].url.includes("/profiles/capture%2Fa/flamegraph"))
+    assert.equal(new URL(requests[2].url).searchParams.get("sampleType"), "cpu")
+})
+
+test("profile download stays authenticated and preserves the attachment name", async () => {
+    const values = new Map([["kanshi.dashboardKey", "dashboard-secret"]])
+    Object.defineProperty(globalThis, "localStorage", { configurable: true, value: { getItem: (key: string) => values.get(key) ?? null, removeItem: (key: string) => values.delete(key) } })
+    const { downloadProfile } = await import("../src/api/api.ts")
+    let requested = "", authorization = ""
+    globalThis.fetch = async (input, init) => {
+        requested = String(input)
+        authorization = new Headers(init?.headers).get("Authorization") ?? ""
+        return new Response("profile", { headers: { "Content-Disposition": "attachment; filename=capture-cpu.pb.gz" } })
+    }
+    const result = await downloadProfile("capture/a")
+    assert.ok(requested.endsWith("/profiles/capture%2Fa/download"))
+    assert.equal(authorization, "Bearer dashboard-secret")
+    assert.equal(result.filename, "capture-cpu.pb.gz")
+    assert.equal(await result.blob.text(), "profile")
+})

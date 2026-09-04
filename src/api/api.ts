@@ -4,6 +4,7 @@ import type { AlertRule, AlertRuleInput } from "../types/alert-rule"
 import type { AlertEvent } from "../types/alert-event"
 import type { LogRecord, ServiceSummary, TraceDetail, TraceFilters, TraceSummary } from "../types/telemetry"
 import type { RawMetric } from "../types/process"
+import type { Flamegraph, ProfileCapture, ProfileType } from "../types/profile"
 
 const API_URL =
     import.meta.env?.VITE_API_URL ||
@@ -39,6 +40,14 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     }
     const json: ApiResponse<T> = await res.json()
     return json.data
+}
+
+async function requestRaw(path: string): Promise<Response> {
+	const key = typeof globalThis.localStorage?.getItem === "function" ? globalThis.localStorage.getItem(DASHBOARD_KEY) : null
+	const res = await fetch(`${API_URL}${path}`, { headers: key ? { Authorization: `Bearer ${key}` } : {} })
+	if (res.status === 401) clearDashboardKey()
+	if (!res.ok) throw new Error(res.status === 401 ? "Invalid dashboard key" : "Request failed")
+	return res
 }
 
 export async function fetchAgents(): Promise<Agent[]> {
@@ -108,4 +117,30 @@ export async function fetchLogs(filters: Pick<TraceFilters, "service" | "traceId
         if (value !== undefined && value !== "") params.set(key, String(value))
     }
     return (await request<LogRecord[]>(`/logs?${params}`)) || []
+}
+
+export function createProfile(agentId: string, input: { targetName: string; profileType: ProfileType; durationSeconds: number }): Promise<ProfileCapture> {
+    return request<ProfileCapture>(`/agents/${encodeURIComponent(agentId)}/profiles`, { method: "POST", body: JSON.stringify(input) })
+}
+
+export async function fetchProfiles(agentId: string, limit = 50): Promise<ProfileCapture[]> {
+    const params = new URLSearchParams({ limit: String(limit) })
+    return (await request<ProfileCapture[]>(`/agents/${encodeURIComponent(agentId)}/profiles?${params}`)) || []
+}
+
+export function fetchProfile(id: string): Promise<ProfileCapture> {
+    return request<ProfileCapture>(`/profiles/${encodeURIComponent(id)}`)
+}
+
+export function fetchProfileFlamegraph(id: string, sampleType = ""): Promise<Flamegraph> {
+    const params = new URLSearchParams()
+    if (sampleType) params.set("sampleType", sampleType)
+    return request<Flamegraph>(`/profiles/${encodeURIComponent(id)}/flamegraph${params.size ? `?${params}` : ""}`)
+}
+
+export async function downloadProfile(id: string): Promise<{ blob: Blob; filename: string }> {
+    const res = await requestRaw(`/profiles/${encodeURIComponent(id)}/download`)
+    const disposition = res.headers.get("Content-Disposition") ?? ""
+    const filename = disposition.match(/filename="?([^";]+)"?/)?.[1] ?? `kanshi-profile-${id}`
+    return { blob: await res.blob(), filename }
 }

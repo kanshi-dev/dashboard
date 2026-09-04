@@ -24,6 +24,8 @@ import { osIcon } from "../util/os"
 import { mergeProcessMetrics } from "../util/processes"
 import { agentTabFromHash } from "../util/agent-tabs"
 import { hostResources } from "../util/host-resources"
+import { agentTabHash } from "../util/agent-tabs"
+import AgentProfiles from "@/components/AgentProfiles"
 
 const emptyMetrics = () => Object.fromEntries(Object.values(hostResources).map(resource => [resource.metric, [] as AggregatedMetric[]]))
 
@@ -89,7 +91,8 @@ export default function AgentDetailPage() {
     }, [id])
 
     useEffect(() => {
-        const load = activeTab === "overview" ? loadAllMetrics : loadProcesses
+        const load = activeTab === "overview" ? loadAllMetrics : activeTab === "processes" ? loadProcesses : null
+        if (!load) return
         load()
         const interval = setInterval(load, 5000)
         return () => clearInterval(interval)
@@ -196,10 +199,11 @@ export default function AgentDetailPage() {
                     </div>
                 )}
 
-                <Tabs value={activeTab} onValueChange={value => navigate({ pathname: location.pathname, search: location.search, hash: value === "processes" ? "#processes" : "" })}>
+                <Tabs value={activeTab} onValueChange={value => navigate({ pathname: location.pathname, search: location.search, hash: agentTabHash(value as "overview" | "processes" | "profiles") })}>
                     <TabsList aria-label="Agent details">
                         <TabsTrigger value="overview">Overview</TabsTrigger>
                         <TabsTrigger value="processes">Processes</TabsTrigger>
+                        <TabsTrigger value="profiles">Profiles</TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="overview">
@@ -270,6 +274,10 @@ export default function AgentDetailPage() {
                         </div>
                     )}
                 </div>
+                    </TabsContent>
+
+                    <TabsContent value="profiles">
+                        {id && <AgentProfiles agentId={id} targets={agent?.profileTargets ?? []} />}
                     </TabsContent>
                 </Tabs>
             </section>

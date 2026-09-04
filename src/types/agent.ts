@@ -10,4 +10,5 @@ export interface Agent {
     lastSeen: string;
     status: string;
     diskSize: number;
+    profileTargets?: import("./profile").ProfileTarget[];
 }
